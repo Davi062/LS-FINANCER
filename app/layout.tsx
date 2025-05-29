@@ -4,6 +4,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { SidebarClient } from "@/components/sidebar-client";
+import { MainContent } from "@/components/main-content";
 
 
 const inter = Inter({
@@ -32,22 +33,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={cn(
           "min-h-screen bg-background font-sans antialiased",
           inter.className
         )}>
-  <SidebarProvider>
-    <div className="flex flex-col h-screen">
-      <SidebarClient />
-      <main className="flex-1 overflow-auto pt-16 md:pt-0 md:pl-[350px]">
-        <div className="p-6">
-          {children}
-        </div>
-      </main>
-    </div>
-  </SidebarProvider>
+        <SidebarProvider>
+          <div className="flex flex-col h-screen">
+            <SidebarClient />
+            <MainContent>
+              {children}
+            </MainContent>
+          </div>
+        </SidebarProvider>
       </body>
     </html>
     
