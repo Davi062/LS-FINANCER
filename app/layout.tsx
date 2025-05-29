@@ -3,7 +3,7 @@ import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar";
+import { SidebarClient } from "@/components/sidebar-client";
 
 
 const inter = Inter({
@@ -38,13 +38,22 @@ export default function RootLayout({
           "min-h-screen bg-background font-sans antialiased",
           inter.className
         )}>
-        <SidebarProvider>
-          <AppSidebar />
-          <main>
-            {children}
-          </main>
-        </SidebarProvider>
+  <SidebarProvider>
+    <div className="flex flex-col h-screen">
+      <SidebarClient />
+      <main className="flex-1 overflow-auto pt-16 md:pt-0 md:pl-[350px]">
+        <div className="p-6">
+          {children}
+        </div>
+      </main>
+    </div>
+  </SidebarProvider>
       </body>
     </html>
+    
   );
 }
+
+
+
+
