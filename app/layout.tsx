@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { SidebarClient } from "@/components/sidebar-client";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
 import { MainContent } from "@/components/main-content";
 
 
@@ -33,23 +33,25 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className="h-full">
       <body
         className={cn(
-          "min-h-screen bg-background font-sans antialiased",
+          "min-h-screen bg-background font-sans antialiased h-full",
           inter.className
         )}>
         <SidebarProvider>
-          <div className="flex flex-col h-screen">
-            <SidebarClient />
-            <MainContent>
-              {children}
+          <div className="flex h-full min-h-screen w-full">
+            <SidebarTrigger className="fixed top-4 left-4 z-50 md:hidden" />
+            <AppSidebar variant="inset" />
+            <MainContent className="flex-1 w-full">
+              <div className="w-full h-full">
+                {children}
+              </div>
             </MainContent>
           </div>
         </SidebarProvider>
       </body>
     </html>
-    
   );
 }
 

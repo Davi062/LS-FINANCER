@@ -3,12 +3,16 @@
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/components/ui/sidebar";
 
-export function MainContent({ children }: { children: React.ReactNode }) {
+interface MainContentProps extends React.HTMLAttributes<HTMLElement> {
+  children: React.ReactNode;
+}
+
+export function MainContent({ children, className, ...props }: MainContentProps) {
   const { state } = useSidebar();
   const isExpanded = state === 'expanded';
 
   return (
-    <div className="relative flex-1">
+    <div className={cn("relative flex-1 w-full", className)} {...props}>
       <div 
         className={cn(
           "fixed top-0 left-0 w-full h-16 bg-background/80 backdrop-blur-sm z-10",

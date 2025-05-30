@@ -1,85 +1,180 @@
 "use client"
 
-import { Calendar, Home, Inbox, Search, Settings } from "lucide-react"
-import dynamic from 'next/dynamic'
+import * as React from "react"
+import {
+  ArrowUpCircleIcon,
+  BarChartIcon,
+  CameraIcon,
+  ClipboardListIcon,
+  DatabaseIcon,
+  FileCodeIcon,
+  FileIcon,
+  FileTextIcon,
+  FolderIcon,
+  HelpCircleIcon,
+  LayoutDashboardIcon,
+  ListIcon,
+  SearchIcon,
+  SettingsIcon,
+  UsersIcon,
+} from "lucide-react"
 
-const Sidebar = dynamic(() => import('@/components/ui/sidebar').then(mod => mod.Sidebar), { ssr: false })
-const SidebarContent = dynamic(() => import('@/components/ui/sidebar').then(mod => mod.SidebarContent), { ssr: false })
-const SidebarGroup = dynamic(() => import('@/components/ui/sidebar').then(mod => mod.SidebarGroup), { ssr: false })
-const SidebarGroupContent = dynamic(() => import('@/components/ui/sidebar').then(mod => mod.SidebarGroupContent), { ssr: false })
-const SidebarGroupLabel = dynamic(() => import('@/components/ui/sidebar').then(mod => mod.SidebarGroupLabel), { ssr: false })
-const SidebarMenu = dynamic(() => import('@/components/ui/sidebar').then(mod => mod.SidebarMenu), { ssr: false })
-const SidebarMenuButton = dynamic(() => import('@/components/ui/sidebar').then(mod => mod.SidebarMenuButton), { ssr: false })
-const SidebarMenuItem = dynamic(() => import('@/components/ui/sidebar').then(mod => mod.SidebarMenuItem), { ssr: false })
-const useSidebar = () => {
-  if (typeof window === 'undefined') return { isMobile: false }
-  return require('@/components/ui/sidebar').useSidebar()
+
+import { NavMain } from "@/components/nav-main"
+import { NavSecondary } from "@/components/nav-secondary"
+import { NavUser } from "@/components/nav-user"
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar"
+
+const data = {
+  user: {
+    name: "shadcn",
+    email: "m@example.com",
+    avatar: "/avatars/shadcn.jpg",
+  },
+  navMain: [
+    {
+      title: "Dashboard",
+      url: "#",
+      icon: LayoutDashboardIcon,
+    },
+    {
+      title: "Lifecycle",
+      url: "#",
+      icon: ListIcon,
+    },
+    {
+      title: "Analytics",
+      url: "#",
+      icon: BarChartIcon,
+    },
+    {
+      title: "Projects",
+      url: "#",
+      icon: FolderIcon,
+    },
+    {
+      title: "Team",
+      url: "#",
+      icon: UsersIcon,
+    },
+  ],
+  navClouds: [
+    {
+      title: "Capture",
+      icon: CameraIcon,
+      isActive: true,
+      url: "#",
+      items: [
+        {
+          title: "Active Proposals",
+          url: "#",
+        },
+        {
+          title: "Archived",
+          url: "#",
+        },
+      ],
+    },
+    {
+      title: "Proposal",
+      icon: FileTextIcon,
+      url: "#",
+      items: [
+        {
+          title: "Active Proposals",
+          url: "#",
+        },
+        {
+          title: "Archived",
+          url: "#",
+        },
+      ],
+    },
+    {
+      title: "Prompts",
+      icon: FileCodeIcon,
+      url: "#",
+      items: [
+        {
+          title: "Active Proposals",
+          url: "#",
+        },
+        {
+          title: "Archived",
+          url: "#",
+        },
+      ],
+    },
+  ],
+  navSecondary: [
+    {
+      title: "Settings",
+      url: "#",
+      icon: SettingsIcon,
+    },
+    {
+      title: "Get Help",
+      url: "#",
+      icon: HelpCircleIcon,
+    },
+    {
+      title: "Search",
+      url: "#",
+      icon: SearchIcon,
+    },
+  ],
+  documents: [
+    {
+      name: "Data Library",
+      url: "#",
+      icon: DatabaseIcon,
+    },
+    {
+      name: "Reports",
+      url: "#",
+      icon: ClipboardListIcon,
+    },
+    {
+      name: "Word Assistant",
+      url: "#",
+      icon: FileIcon,
+    },
+  ],
 }
-import { cn } from "@/lib/utils"
 
-// Menu items.
-const items = [
-  {
-    title: "Dash",
-    url: "/admin",
-    icon: Home,
-  },
-  {
-    title: "Inbox",
-    url: "#",
-    icon: Inbox,
-  },
-  {
-    title: "Calendar",
-    url: "#",
-    icon: Calendar,
-  },
-  {
-    title: "Search",
-    url: "#",
-    icon: Search,
-  },
-  {
-    title: "Settings",
-    url: "#",
-    icon: Settings,
-  },
-]
-
-function AppSidebar() {
-  const { isMobile } = useSidebar()
-
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar 
-      className={cn(
-        "shadow-[0_4px_15px_-3px_rgba(0,0,0,0.1)] flex flex-col bg-background",
-        isMobile 
-          ? "fixed top-0 left-0 right-0 h-auto max-h-[80vh] overflow-y-auto z-40" 
-          : "w-[350px] h-full border-r z-30"
-      )}
-      side={isMobile ? "top" : "left"}
-    >
+    <Sidebar collapsible="offcanvas" {...props}>
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              className="data-[slot=sidebar-menu-button]:!p-1.5"
+            >
+              <a href="#">
+                <ArrowUpCircleIcon className="h-5 w-5" />
+                <span className="text-base font-semibold">Acme Inc.</span>
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-center">Application</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem className="hover:bg-transparent w-full" key={item.title}>
-                  <SidebarMenuButton className="hover:bg-transparent w-full" asChild>
-                    <a href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        <NavMain items={data.navMain} />
+        <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
+      <SidebarFooter>
+        <NavUser user={data.user} />
+      </SidebarFooter>
     </Sidebar>
   )
 }
-
-export default AppSidebar;
