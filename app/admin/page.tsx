@@ -1,7 +1,267 @@
+"use client";
+
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
+
+// Mock data for the chart
+const monthlyData = [
+  { name: 'Jan', income: 4000, expenses: 2400 },
+  { name: 'Fev', income: 3000, expenses: 1398 },
+  { name: 'Mar', income: 2000, expenses: 9800 },
+  { name: 'Abr', income: 2780, expenses: 3908 },
+  { name: 'Mai', income: 1890, expenses: 4800 },
+  { name: 'Jun', income: 2390, expenses: 3800 },
+];
+
+// Types
+type ProjectStatus = 'Em andamento' | 'Concluído' | 'Orçamento' | 'Pendente';
+
+interface Client {
+  id: number;
+  name: string;
+  email: string;
+  project: string;
+  value: number;
+  status: ProjectStatus;
+  startDate: string | null;
+  endDate: string | null;
+  projectDescription?: string;
+}
+
+// Mock client data with project values
+const clients: Client[] = [
+  { 
+    id: 1, 
+    name: 'João Silva', 
+    email: 'joao@example.com',
+    project: 'Site Institucional',
+    value: 5000,
+    status: 'Em andamento',
+    startDate: '2025-05-15',
+    endDate: '2025-07-15',
+    projectDescription: 'Desenvolvimento de site institucional responsivo com painel administrativo.'
+  },
+  { 
+    id: 2, 
+    name: 'Maria Santos', 
+    email: 'maria@example.com',
+    project: 'Loja Virtual',
+    value: 12000,
+    status: 'Concluído',
+    startDate: '2025-04-10',
+    endDate: '2025-05-30',
+    projectDescription: 'E-commerce completo com integração de pagamentos e gestão de estoque.'
+  },
+  { 
+    id: 3, 
+    name: 'Carlos Oliveira', 
+    email: 'carlos@example.com',
+    project: 'Aplicativo Móvel',
+    value: 25000,
+    status: 'Em andamento',
+    startDate: '2025-06-01',
+    endDate: '2025-09-30',
+    projectDescription: 'Aplicativo iOS e Android com backend em nuvem e sincronização em tempo real.'
+  },
+  { 
+    id: 4, 
+    name: 'Ana Costa', 
+    email: 'ana@example.com',
+    project: 'Landing Page',
+    value: 3000,
+    status: 'Orçamento',
+    startDate: null,
+    endDate: null,
+    projectDescription: 'Página de captura para lançamento de novo produto.'
+  },
+];
+
 export default function AdminPage() {
-    return (
-        <div>
-            <h1>Admin</h1>
-        </div>
-    )
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  
+  const getStatusColor = (status: ProjectStatus) => {
+    switch(status.toLowerCase()) {
+      case 'concluído':
+        return 'bg-green-100 text-green-800';
+      case 'em andamento':
+        return 'bg-blue-100 text-blue-800';
+      case 'orçamento':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'pendente':
+        return 'bg-orange-100 text-orange-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  // Calculate totals
+  const totalIncome = monthlyData.reduce((sum, month) => sum + month.income, 0);
+  const totalExpenses = monthlyData.reduce((sum, month) => sum + month.expenses, 0);
+
+  return (
+    <div className="p-6 space-y-6">
+      <h1 className="text-3xl font-bold">Dashboard</h1>
+      
+      {/* Income/Expense Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Ganhos Totais</CardTitle>
+            <span className="h-4 w-4 text-muted-foreground">💰</span>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">R$ {totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+            <p className="text-xs text-muted-foreground">+20.1% em relação ao mês passado</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Gastos Totais</CardTitle>
+            <span className="h-4 w-4 text-muted-foreground">💸</span>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">R$ {totalExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+            <p className="text-xs text-muted-foreground">+5.3% em relação ao mês passado</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Chart and Clients */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle>Desempenho Mensal</CardTitle>
+          </CardHeader>
+          <CardContent className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="income" stroke="#4CAF50" name="Ganhos" />
+                <Line type="monotone" dataKey="expenses" stroke="#F44336" name="Gastos" />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Clientes</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {clients.map((client) => (
+              <div key={client.id} className="border rounded-lg p-4 hover:bg-accent/50 transition-colors">
+                <Dialog onOpenChange={(open) => {
+                  if (open) {
+                    setSelectedClient(client);
+                    setIsDialogOpen(true);
+                  } else {
+                    setIsDialogOpen(false);
+                  }
+                }}>
+                  <DialogTrigger asChild>
+                    <div className="w-full cursor-pointer">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-medium">{client.name}</h3>
+                          <p className="text-sm text-muted-foreground">{client.email}</p>
+                        </div>
+                        <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(client.status)}`}>
+                          {client.status}
+                        </span>
+                      </div>
+                      <div className="mt-2">
+                        <p className="text-sm font-medium">{client.project}</p>
+                        <p className="text-lg font-bold text-green-600">
+                          R$ {client.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </p>
+                        {client.endDate && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Previsão: {new Date(client.endDate).toLocaleDateString('pt-BR')}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </DialogTrigger>
+                  
+                  <DialogContent className="sm:max-w-[600px]" onOpenAutoFocus={(e) => e.preventDefault()}>
+                    <DialogHeader>
+                      <DialogTitle>Detalhes do Projeto</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <h4 className="text-sm font-medium text-muted-foreground">Cliente</h4>
+                          <p className="text-base">{client.name}</p>
+                          <p className="text-sm text-muted-foreground">{client.email}</p>
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-medium text-muted-foreground">Status</h4>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(client.status)}`}>
+                            {client.status}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h4 className="text-sm font-medium text-muted-foreground">Projeto</h4>
+                        <p className="text-lg font-medium">{client.project}</p>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <h4 className="text-sm font-medium text-muted-foreground">Valor do Projeto</h4>
+                          <p className="text-2xl font-bold text-green-600">
+                            R$ {client.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          </p>
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-medium text-muted-foreground">Período</h4>
+                          <p className="text-sm">
+                            {client.startDate 
+                              ? `${new Date(client.startDate).toLocaleDateString('pt-BR')} - ${client.endDate ? new Date(client.endDate).toLocaleDateString('pt-BR') : 'Em aberto'}`
+                              : 'A definir'}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="pt-4 border-t">
+                        <h4 className="text-sm font-medium text-muted-foreground mb-2">Descrição do Projeto</h4>
+                        <p className="text-sm text-muted-foreground">
+                          {client.projectDescription || 'Nenhuma descrição fornecida.'}
+                        </p>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
 }
