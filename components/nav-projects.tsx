@@ -32,11 +32,9 @@ export function NavProjects({
     name: string
     url: string
     icon: LucideIcon
-    active?: boolean
-    onClick?: (e: React.MouseEvent) => void
   }[]
 }) {
-  const { isMobile, state } = useSidebar()
+  const { isMobile } = useSidebar()
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
@@ -44,18 +42,15 @@ export function NavProjects({
       <SidebarMenu>
         {projects.map((item) => (
           <SidebarMenuItem key={item.name}>
-            <SidebarMenuButton 
-              asChild
-              className={`${item.active ? 'bg-[#499CA6]/10 text-[#499CA6] border-l-4 border-[#499CA6] pl-[calc(0.75rem-4px)]' : ''} hover:bg-transparent`}
-            >
-              <a href={item.url} onClick={item.onClick}>
-                <item.icon className={item.active ? 'text-[#499CA6]' : ''} />
+            <SidebarMenuButton asChild>
+              <a href={item.url}>
+                <item.icon />
                 <span>{item.name}</span>
               </a>
             </SidebarMenuButton>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <SidebarMenuAction>
+                <SidebarMenuAction showOnHover>
                   <MoreHorizontal />
                   <span className="sr-only">More</span>
                 </SidebarMenuAction>
@@ -83,7 +78,7 @@ export function NavProjects({
           </SidebarMenuItem>
         ))}
         <SidebarMenuItem>
-          <SidebarMenuButton className="text-sidebar-foreground/70 hover:bg-transparent">
+          <SidebarMenuButton className="text-sidebar-foreground/70">
             <MoreHorizontal className="text-sidebar-foreground/70" />
             <span>More</span>
           </SidebarMenuButton>

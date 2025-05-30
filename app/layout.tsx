@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
-import { MainContent } from "@/components/main-content";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 
 
 const inter = Inter({
@@ -39,17 +38,16 @@ export default function RootLayout({
           "min-h-screen bg-background font-sans antialiased h-full",
           inter.className
         )}>
+       
+       <div>
         <SidebarProvider>
-          <div className="flex h-full min-h-screen w-full">
-            <SidebarTrigger className="fixed top-4 left-4 z-50 md:hidden" />
-            <AppSidebar variant="inset" />
-            <MainContent className="flex-1 w-full">
-              <div className="w-full h-full">
-                {children}
-              </div>
-            </MainContent>
-          </div>
+        <AppSidebar />
+        <SidebarTrigger />
+        <div className="">
+        {children}
+        </div>
         </SidebarProvider>
+       </div>
       </body>
     </html>
   );
