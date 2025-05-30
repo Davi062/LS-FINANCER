@@ -45,6 +45,13 @@
 
 :root {
   --radius: 0.625rem;
+  
+  /* Cores do gráfico */
+  --chart-1: 16 185 129; /* Verde para Ganhos */
+  --chart-2: 239 68 68;  /* Vermelho para Gastos */
+  --chart-3: 99 102 241; /* Índigo para outras séries */
+  --chart-4: 245 158 11; /* Amarelo para outras séries */
+  --chart-5: 236 72 153; /* Rosa para outras séries */
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);

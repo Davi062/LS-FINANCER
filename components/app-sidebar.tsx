@@ -13,6 +13,9 @@ import {
   Settings2,
   SquareTerminal,
   BriefcaseBusiness,
+  ScrollText,
+  User,
+  
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -36,124 +39,60 @@ const data = {
   },
   teams: [
     {
-      name: "Acme Inc",
+      name: "Link Finanças",
       logo: GalleryVerticalEnd,
       plan: "Enterprise",
     },
-    {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
-    },
   ],
-  navMain: [
+  items: [
     {
-      title: "Playground",
-      url: "#",
-      icon: BriefcaseBusiness,
-      isActive: true,
-      items: [
-        {
-          title: "History",
-          url: "/admin",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Settings",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Models",
-      url: "#",
-      icon: Bot,
-      items: [
-        {
-          title: "Genesis",
-          url: "#",
-        },
-        {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Documentation",
-      url: "#",
-      icon: BookOpen,
-      items: [
-        {
-          title: "Introduction",
-          url: "#",
-        },
-        {
-          title: "Get Started",
-          url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings2,
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
-        },
-      ],
-    },
-  ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
+      title: "Dashboard",
+      url: "/admin",
       icon: PieChart,
+      items: [
+        {
+          title: "Dashboard",
+          url: "/admin",
+          icon: PieChart,
+        },
+      ],
     },
     {
-      name: "Travel",
-      url: "#",
-      icon: Map,
+      title: "Projetos",
+      url: "/projetos",
+      icon: ScrollText,
+      items: [
+        {
+          title: "Projetos",
+          url: "/projetos",
+          icon: ScrollText,
+        },
+      ],
     },
+    {
+      title: "Usuários",
+      url: "/usuarios",
+      icon: User,
+      items: [
+        {
+          title: "Usuários",
+          url: "/usuarios",
+          icon: User,
+        },
+      ],
+    },
+    {
+     title: "Settings",
+     url: "/settings",
+     icon: Settings2,
+     items: [
+       {
+         title: "Settings",
+         url: "/settings",
+         icon: Settings2,
+       },
+     ],
+    }
   ],
 }
 
@@ -164,8 +103,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+        <NavMain items={data.items} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />

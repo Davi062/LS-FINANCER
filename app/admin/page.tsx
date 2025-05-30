@@ -98,6 +98,16 @@ const clients: Client[] = [
 export default function AdminPage() {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredClients = clients.filter(client => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      client.name.toLowerCase().includes(searchLower) ||
+      client.email.toLowerCase().includes(searchLower) ||
+      client.project.toLowerCase().includes(searchLower)
+    );
+  });
   
   const getStatusColor = (status: ProjectStatus) => {
     switch(status.toLowerCase()) {
@@ -168,11 +178,27 @@ export default function AdminPage() {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Clientes</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {clients.map((client) => (
+          <CardHeader className="pb-2">
+            <div className="flex justify-between items-center">
+              <CardTitle>Clientes</CardTitle>
+              <div className="w-64">
+                <Input
+                  placeholder="Buscar clientes..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="h-8"
+                />
+              </div>
+            </div>
+          </CardHeader> 
+          <CardContent className="p-0">
+            <div className="max-h-[500px] overflow-y-auto p-4 space-y-4">
+            {filteredClients.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Nenhum cliente encontrado
+              </div>
+            ) : (
+              filteredClients.map((client) => (
               <div key={client.id} className="border rounded-lg p-4 hover:bg-accent/50 transition-colors">
                 <Dialog onOpenChange={(open) => {
                   if (open) {
@@ -219,18 +245,8 @@ export default function AdminPage() {
                           <p className="text-sm text-muted-foreground">{client.email}</p>
                         </div>
                         <div>
-                          <h4 className="text-sm font-medium text-muted-foreground">Status</h4>
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(client.status)}`}>
-                            {client.status}
-                          </span>
                         </div>
                       </div>
-                      
-                      <div>
-                        <h4 className="text-sm font-medium text-muted-foreground">Projeto</h4>
-                        <p className="text-lg font-medium">{client.project}</p>
-                      </div>
-                      
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <h4 className="text-sm font-medium text-muted-foreground">Valor do Projeto</h4>
@@ -239,26 +255,20 @@ export default function AdminPage() {
                           </p>
                         </div>
                         <div>
-                          <h4 className="text-sm font-medium text-muted-foreground">Período</h4>
+                          <h4 className="text-sm font-medium text-muted-foreground">Ativo desde</h4>
                           <p className="text-sm">
                             {client.startDate 
-                              ? `${new Date(client.startDate).toLocaleDateString('pt-BR')} - ${client.endDate ? new Date(client.endDate).toLocaleDateString('pt-BR') : 'Em aberto'}`
-                              : 'A definir'}
+                              ? new Date(client.startDate).toLocaleDateString('pt-BR')
+                              : 'Data não informada'}
                           </p>
                         </div>
-                      </div>
-                      
-                      <div className="pt-4 border-t">
-                        <h4 className="text-sm font-medium text-muted-foreground mb-2">Descrição do Projeto</h4>
-                        <p className="text-sm text-muted-foreground">
-                          {client.projectDescription || 'Nenhuma descrição fornecida.'}
-                        </p>
-                      </div>
+                      </div>        
                     </div>
                   </DialogContent>
                 </Dialog>
               </div>
-            ))}
+            )))}
+            </div>
           </CardContent>
         </Card>
       </div>

@@ -4,7 +4,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-
+import PageTransition from "@/components/PageTransition";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -44,7 +44,9 @@ export default function RootLayout({
         <AppSidebar />
         <SidebarTrigger />
         <div className="">
-        {children}
+          <PageTransition>
+            {children}
+          </PageTransition>
         </div>
         </SidebarProvider>
        </div>
