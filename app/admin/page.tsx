@@ -130,7 +130,7 @@ export default function AdminPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-3xl font-bold">Dashboard</h1>
+      <h1 className="text-3xl font-bold">Financeiro</h1>
       
       {/* Income/Expense Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

@@ -46,12 +46,12 @@ const data = {
   ],
   items: [
     {
-      title: "Dashboard",
+      title: "Financeiro",
       url: "/admin",
       icon: PieChart,
       items: [
         {
-          title: "Dashboard",
+          title: "Financeiro",
           url: "/admin",
           icon: PieChart,
         },
@@ -59,36 +59,36 @@ const data = {
     },
     {
       title: "Projetos",
-      url: "/projetos",
+      url: "/admin/projetos",
       icon: ScrollText,
       items: [
         {
           title: "Projetos",
-          url: "/projetos",
+          url: "/admin/projetos",
           icon: ScrollText,
         },
       ],
     },
     {
       title: "Usuários",
-      url: "/usuarios",
+      url: "/admin/users",
       icon: User,
       items: [
         {
           title: "Usuários",
-          url: "/usuarios",
+          url: "/admin/users",
           icon: User,
         },
       ],
     },
     {
      title: "Settings",
-     url: "/settings",
+     url: "/admin/settings",
      icon: Settings2,
      items: [
        {
          title: "Settings",
-         url: "/settings",
+         url: "/admin/settings",
          icon: Settings2,
        },
      ],
