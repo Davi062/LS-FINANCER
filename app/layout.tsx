@@ -5,11 +5,12 @@ import { cn } from "@/lib/utils";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import PageTransition from "@/components/PageTransition";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "sonner";
 
 const inter = Inter({
   subsets: ["latin"],
 });
-
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,25 +37,27 @@ export default function RootLayout({
       <body
         className={cn(
           "min-h-screen bg-background font-sans antialiased h-full",
-          inter.className
-        )}>
-       
-       <div>
-        <SidebarProvider>
-        <AppSidebar />
-        <SidebarTrigger />
-        <div className="">
-          <PageTransition>
-            {children}
-          </PageTransition>
-        </div>
-        </SidebarProvider>
-       </div>
+          inter.className,
+          geistSans.variable,
+          geistMono.variable
+        )}
+      >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <SidebarProvider>
+            <AppSidebar />
+            <SidebarTrigger className="cursor-pointer"/>
+            <div className="flex flex-1 w-full">
+              {children}
+            </div>
+            <Toaster position="top-right" richColors />
+          </SidebarProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
 }
-
-
-
-

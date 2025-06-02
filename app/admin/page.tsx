@@ -21,6 +21,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { Separator } from '@radix-ui/react-separator';
 
 // Mock data for the chart
 const monthlyData = [
@@ -129,7 +130,7 @@ export default function AdminPage() {
   const totalExpenses = monthlyData.reduce((sum, month) => sum + month.expenses, 0);
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 bg-red-5 w-full">
       <h1 className="text-3xl font-bold">Financeiro</h1>
       
       {/* Income/Expense Cards */}

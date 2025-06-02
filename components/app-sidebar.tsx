@@ -19,7 +19,6 @@ import {
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
 import { NavUser } from "@/components/nav-user"
 import { TeamSwitcher } from "@/components/team-switcher"
 import {
@@ -82,12 +81,12 @@ const data = {
       ],
     },
     {
-     title: "Settings",
+     title: "Configurações",
      url: "/admin/settings",
      icon: Settings2,
      items: [
        {
-         title: "Settings",
+         title: "Configurações",
          url: "/admin/settings",
          icon: Settings2,
        },
