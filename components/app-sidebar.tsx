@@ -15,6 +15,7 @@ import {
   BriefcaseBusiness,
   ScrollText,
   User,
+  DollarSign,
   
 } from "lucide-react"
 
@@ -47,7 +48,7 @@ const data = {
     {
       title: "Financeiro",
       url: "/admin",
-      icon: PieChart,
+      icon: DollarSign,
       items: [
         {
           title: "Financeiro",
