@@ -1,78 +1,107 @@
 "use client";
 
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Page() {
   const [flipped, setFlipped] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
 
   function handleClick(e: React.FormEvent) {
     e.preventDefault();
     if (flipped) return;
+
     setFlipped(true);
-    setTimeout(() => setFlipped(false), 1000);
+    setLoggedIn(true);
+
+    setTimeout(() => {
+      setFlipped(false);
+      setLoggedIn(false);
+      setEmail("");
+      setSenha("");
+    }, 2000);
   }
 
   return (
-    <div
-      className="fixed inset-0 flex items-center justify-center
-                 bg-[radial-gradient(ellipse_at_50%_75%,#0c1a4f,#60a5fa,#0c1a4f_78%)]"
-    >
-      <div
-        className={`relative w-full max-w-md p-8 rounded-lg bg-white/10 backdrop-blur-md shadow-md
-                    flex flex-col items-center gap-6
-                    transition-transform duration-500 ease-in-out
-                    hover:scale-105`}
-        style={{
-          perspective: "1000px",
-          transformStyle: "preserve-3d",
-          transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)",
-        }}
+    <div className="fixed inset-0 flex flex-col items-center justify-center gap-6 bg-gradient-to-t from-[#15192f] via-[#223347] via-55% to-[#3c5674] overflow-hidden">
+
+      {/* ✅ Logo centralizada acima do form */}
+      <img
+        src="/logo.svg"
+        alt="Logo"
+        className="w-32 h-auto mb-2 drop-shadow-md rounded-3xl"
+      />
+
+      {/* Cartão principal */}
+      <motion.div
+        className="relative w-full max-w-md p-8 rounded-3xl bg-white/10 backdrop-blur-md shadow-lg z-10"
+        whileHover={{ scale: 1.05 }}
+        transition={{ type: "spring", stiffness: 200, damping: 15 }}
       >
-        {/* Frente do formulário */}
-        <div
-          style={{ backfaceVisibility: "hidden" }}
-          className="flex flex-col items-center gap-6 w-full"
+        <motion.div
+          className="relative w-full h-[360px] transition-transform duration-700 ease-in-out"
+          animate={{ rotateY: flipped ? 180 : 0 }}
+          transition={{ duration: 0.8 }}
+          style={{ transformStyle: "preserve-3d", perspective: 1000 }}
         >
-          {/* Frase que aparece só no hover */}
-          <h1
-            className="text-2xl font-bold text-white
-                       opacity-0 transition-opacity duration-300 ease-in-out
-                       hover:opacity-100"
-            style={{ pointerEvents: "none" }}
+          {/* Frente */}
+          <div
+            className="absolute inset-0 flex flex-col items-center justify-center gap-6 w-full"
+            style={{ backfaceVisibility: "hidden" }}
           >
-            Faça seu Login
-          </h1>
+            <h1 className="text-3xl font-bold text-white mb-2 drop-shadow">
+              Faça seu login
+            </h1>
 
-          <form onSubmit={handleClick} className="flex flex-col gap-4 w-full">
-            <input
-              type="text"
-              placeholder="Email"
-              className="w-full p-2 border border-white/30 bg-white/20 text-white placeholder-white rounded"
-            />
-            <input
-              type="password"
-              placeholder="Senha"
-              className="w-full p-2 border border-white/30 bg-white/20 text-white placeholder-white rounded"
-            />
-            <button
-              type="submit"
-              className="w-5/6 max-w-xs mx-auto bg-sky-500 hover:bg-sky-700 text-white font-semibold rounded p-2
-                         transition-transform duration-200 ease-in-out active:scale-90"
-            >
-              Logar
-            </button>
-          </form>
-        </div>
+            <form onSubmit={handleClick} className="flex flex-col gap-4 w-5/6">
+              <input
+                type="text"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full p-2 border border-white/60 bg-white/20 text-white placeholder-white rounded"
+              />
+              <input
+                type="password"
+                placeholder="Senha"
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
+                className="w-full p-2 border border-white/60 bg-white/20 text-white placeholder-white rounded"
+              />
+              <button
+                type="submit"
+                className="w-2/6 max-w-xs mx-auto bg-[#223347] hover:bg-[#3c5674] text-white font-semibold rounded p-2 transition-transform duration-200 ease-in-out active:scale-90"
+              >
+                Logar
+              </button>
+            </form>
+          </div>
 
-        {/* Verso vazio */}
-        <div
-          style={{
-            backfaceVisibility: "hidden",
-            transform: "rotateY(180deg)",
-          }}
-          className="absolute inset-0 bg-transparent"
-        />
-      </div>
+          {/* Verso */}
+          <div
+            className="absolute inset-0 flex items-center justify-center bg-white/20 text-white text-xl font-semibold rounded-lg"
+            style={{
+              backfaceVisibility: "hidden",
+              transform: "rotateY(180deg)",
+            }}
+          >
+            <AnimatePresence>
+              {loggedIn && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  ✅ Login realizado com sucesso!
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }
