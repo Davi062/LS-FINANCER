@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -147,6 +147,8 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
+
+
 export default function ProjetosPage() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -161,6 +163,12 @@ export default function ProjetosPage() {
     setSelectedProject(project);
     setIsDialogOpen(true);
   };
+
+  useEffect(() => {
+    if (!searchTerm) {
+      <h1>Projetos</h1>
+    }
+  }, [filteredProjects, searchTerm]);
 
   return (
     <div className="p-6 space-y-6 lg:pr-96">

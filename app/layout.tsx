@@ -4,9 +4,8 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import PageTransition from "@/components/PageTransition";
-import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "sonner";
+import { ThemeProvider } from "next-themes";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -29,11 +28,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="en" suppressHydrationWarning className="h-full">
+    <html lang="pt-BR" suppressHydrationWarning className="h-full">
       <body
         className={cn(
           "min-h-screen bg-background font-sans antialiased h-full",
@@ -50,7 +49,7 @@ export default function RootLayout({
         >
           <SidebarProvider>
             <AppSidebar />
-            <SidebarTrigger className="cursor-pointer"/>
+            <SidebarTrigger className="cursor-pointer" />
             <div className="flex flex-1 w-full">
               {children}
             </div>

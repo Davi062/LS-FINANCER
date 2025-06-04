@@ -16,7 +16,7 @@ import {
   ScrollText,
   User,
   DollarSign,
-  
+  LayoutDashboard,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -46,12 +46,12 @@ const data = {
   ],
   items: [
     {
-      title: "Financeiro",
+      title: "Dashboard",
       url: "/admin",
-      icon: DollarSign,
+      icon: LayoutDashboard,
       items: [
         {
-          title: "Financeiro",
+          title: "Dashboard",
           url: "/admin",
           icon: PieChart,
         },

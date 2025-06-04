@@ -106,7 +106,7 @@ export default function AdminPage() {
     return (
       client.name.toLowerCase().includes(searchLower) ||
       client.email.toLowerCase().includes(searchLower) ||
-      client.project.toLowerCase().includes(searchLower)
+      client.project.toLowerCase().includes(searchLower) 
     );
   });
   
@@ -130,8 +130,9 @@ export default function AdminPage() {
   const totalExpenses = monthlyData.reduce((sum, month) => sum + month.expenses, 0);
 
   return (
+
     <div className="p-6 space-y-6 bg-red-5 w-full">
-      <h1 className="text-3xl font-bold">Financeiro</h1>
+      <h1 className="text-3xl font-bold"></h1>
       
       {/* Income/Expense Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
