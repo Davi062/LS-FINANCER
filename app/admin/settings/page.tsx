@@ -26,6 +26,7 @@ type Language = "pt-BR" | "en-US" | "es-ES";
 export interface AppSettings {
   // Aparência
   theme: Theme;
+  primaryColor: string; // Nova propriedade para a cor personalizada
   language: Language;
   fontSize: number;
   compactMode: boolean;
@@ -51,6 +52,7 @@ export interface AppSettings {
 const DEFAULT_SETTINGS: AppSettings = {
   // Aparência
   theme: "system",
+  primaryColor: "#3b82f6", // Cor azul padrão
   language: "pt-BR",
   fontSize: 14,
   compactMode: false,
@@ -113,27 +115,136 @@ export default function SettingsPage() {
   const [hasChanges, setHasChanges] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
+  // Aplicar a cor personalizada ao tema
+  const applyCustomColor = (color: string | undefined) => {
+    if (!color) return;
+    
+    try {
+      // Remove a classe de cor anterior, se existir
+      const existingStyle = document.getElementById('custom-theme-color');
+      
+      // Cria uma nova tag de estilo com a cor personalizada
+      const style = document.createElement('style');
+      style.id = 'custom-theme-color';
+      
+      const hoverColor = adjustColor(color, -10);
+      const activeColor = adjustColor(color, -20);
+      
+      style.textContent = `
+        :root {
+          --primary: ${color};
+          --primary-foreground: #ffffff;
+          --primary-hover: ${hoverColor};
+          --primary-active: ${activeColor};
+        }
+      `;
+      
+      // Remove o estilo antigo e adiciona o novo
+      if (existingStyle && existingStyle.parentNode) {
+        existingStyle.parentNode.removeChild(existingStyle);
+      }
+      
+      if (document.head) {
+        document.head.appendChild(style);
+      }
+    } catch (error) {
+      console.error('Erro ao aplicar cor personalizada:', error);
+    }
+  };
+
+  // Função auxiliar para ajustar o brilho de uma cor
+  const adjustColor = (color: string, amount: number): string => {
+    if (!color) return '#3b82f6'; // Cor padrão se não houver cor
+    
+    try {
+      // Remove o # do início, se existir
+      const hex = color.replace('#', '');
+      
+      // Verifica se o valor hexadecimal é válido
+      if (!/^[0-9A-Fa-f]{6}$/i.test(hex)) {
+        return '#3b82f6'; // Retorna cor padrão se o formato for inválido
+      }
+      
+      // Converte para valores RGB
+      const r = Math.max(0, Math.min(255, parseInt(hex.substring(0, 2), 16) + amount));
+      const g = Math.max(0, Math.min(255, parseInt(hex.substring(2, 4), 16) + amount));
+      const b = Math.max(0, Math.min(255, parseInt(hex.substring(4, 6), 16) + amount));
+      
+      // Converte de volta para hexadecimal
+      return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+    } catch (error) {
+      console.error('Erro ao ajustar cor:', error);
+      return '#3b82f6'; // Retorna cor padrão em caso de erro
+    }
+  };
+
+  // Aplicar o tema e a cor personalizada quando as configurações forem carregadas ou alteradas
+  useEffect(() => {
+    if (isLoading || typeof document === 'undefined') return;
+    
+    try {
+      // Aplica o tema
+      const themeToApply = settings?.theme || 'system';
+      setTheme(themeToApply);
+      
+      // Aplica a cor personalizada
+      const colorToApply = settings?.primaryColor || '#3b82f6';
+      applyCustomColor(colorToApply);
+      
+      // Atualiza a classe do documento para o tema
+      if (themeToApply === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else if (themeToApply === 'light') {
+        document.documentElement.classList.remove('dark');
+      } else {
+        // Tema do sistema
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (prefersDark) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao aplicar tema e cor:', error);
+    }
+  }, [settings?.primaryColor, settings?.theme, isLoading, setTheme]);
+
   // Carregar configurações do localStorage ao montar o componente
   useEffect(() => {
     const loadSettings = () => {
       try {
-        if (typeof window === 'undefined') return;
+        if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+          setSettings(DEFAULT_SETTINGS);
+          setIsLoading(false);
+          return;
+        }
         
         const savedSettings = localStorage.getItem("appSettings");
         if (savedSettings) {
           const parsedSettings = JSON.parse(savedSettings);
-          setSettings(parsedSettings);
           
-          // Aplica o tema salvo
-          if (parsedSettings.theme) {
-            setTheme(parsedSettings.theme);
-          }
+          // Valida e mescla com as configurações padrão
+          const validatedSettings: AppSettings = {
+            ...DEFAULT_SETTINGS,
+            ...parsedSettings,
+            // Garante que os valores obrigatórios existam
+            theme: ['light', 'dark', 'system'].includes(parsedSettings.theme) 
+              ? parsedSettings.theme 
+              : DEFAULT_SETTINGS.theme,
+            primaryColor: parsedSettings.primaryColor || DEFAULT_SETTINGS.primaryColor,
+          };
+          
+          setSettings(validatedSettings);
           
           // Atualiza a data do último salvamento
           const savedAt = localStorage.getItem("settingsSavedAt");
           if (savedAt) {
             setLastSaved(new Date(savedAt));
           }
+        } else {
+          // Usa as configurações padrão se não houver configurações salvas
+          setSettings(DEFAULT_SETTINGS);
         }
       } catch (error) {
         console.error("Erro ao carregar configurações:", error);
@@ -160,22 +271,67 @@ export default function SettingsPage() {
 
   // Salva as configurações
   const saveSettings = async () => {
+    if (isSaving) return;
+    
     setIsSaving(true);
     
     try {
+      // Valida as configurações antes de salvar
+      const settingsToSave: AppSettings = {
+        ...DEFAULT_SETTINGS,
+        ...settings,
+        // Garante que o tema seja válido
+        theme: ['light', 'dark', 'system'].includes(settings.theme) 
+          ? settings.theme 
+          : DEFAULT_SETTINGS.theme,
+        // Garante que a cor seja válida
+        primaryColor: /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/i.test(settings.primaryColor)
+          ? settings.primaryColor
+          : DEFAULT_SETTINGS.primaryColor,
+      };
+      
+      // Atualiza o estado com as configurações validadas
+      setSettings(settingsToSave);
+      
       // Simula uma chamada de API
       await new Promise(resolve => setTimeout(resolve, 800));
       
       // Salva no localStorage
-      if (typeof window !== 'undefined') {
-        localStorage.setItem("appSettings", JSON.stringify(settings));
-        const now = new Date();
-        localStorage.setItem("settingsSavedAt", now.toISOString());
-        setLastSaved(now);
+      if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+        try {
+          localStorage.setItem("appSettings", JSON.stringify(settingsToSave));
+          const now = new Date();
+          localStorage.setItem("settingsSavedAt", now.toISOString());
+          setLastSaved(now);
+        } catch (storageError) {
+          console.error("Erro ao acessar o localStorage:", storageError);
+          toast.error("Não foi possível salvar as configurações localmente.");
+          return;
+        }
       }
       
-      // Aplica o tema após salvar
-      setTheme(settings.theme);
+      // Aplica o tema e a cor personalizada após salvar
+      setTheme(settingsToSave.theme);
+      applyCustomColor(settingsToSave.primaryColor);
+      
+      // Força a atualização do tema no documento
+      try {
+        if (settingsToSave.theme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else if (settingsToSave.theme === 'light') {
+          document.documentElement.classList.remove('dark');
+        } else {
+          // Tema do sistema
+          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (prefersDark) {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        }
+      } catch (themeError) {
+        console.error("Erro ao aplicar o tema:", themeError);
+      }
       
       toast.success("Configurações salvas com sucesso!");
       setHasChanges(false);
@@ -190,7 +346,12 @@ export default function SettingsPage() {
   // Redefine as configurações para os padrões
   const resetToDefaults = () => {
     if (window.confirm("Tem certeza que deseja redefinir todas as configurações para os valores padrão?")) {
+      // Aplica as configurações padrão
       setSettings(DEFAULT_SETTINGS);
+      
+      // Aplica o tema e a cor padrão imediatamente
+      setTheme(DEFAULT_SETTINGS.theme);
+      applyCustomColor(DEFAULT_SETTINGS.primaryColor);
       
       // Limpa as configurações salvas
       if (typeof window !== 'undefined') {
@@ -198,8 +359,22 @@ export default function SettingsPage() {
         localStorage.removeItem("settingsSavedAt");
       }
       
-      // O tema só será aplicado quando o usuário salvar as alterações
-      toast.info("Configurações redefinidas para os padrões. Não esqueça de salvar as alterações!");
+      // Força a atualização do tema no documento
+      if (DEFAULT_SETTINGS.theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else if (DEFAULT_SETTINGS.theme === 'light') {
+        document.documentElement.classList.remove('dark');
+      } else {
+        // Tema do sistema
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (prefersDark) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      }
+      
+      toast.success("Configurações redefinidas para os valores padrão!");
       setHasChanges(true);
     }
   };
@@ -316,6 +491,25 @@ export default function SettingsPage() {
                       <span className="font-medium">{label}</span>
                     </button>
                   ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="primaryColor">Cor Principal</Label>
+                <p className="text-sm text-muted-foreground">
+                  Escolha uma cor personalizada para o tema
+                </p>
+                <div className="flex items-center gap-4">
+                  <input
+                    type="color"
+                    id="primaryColor"
+                    value={settings.primaryColor}
+                    onChange={(e) => updateSetting('primaryColor', e.target.value)}
+                    className="h-10 w-16 cursor-pointer rounded-md border border-input bg-background"
+                  />
+                  <span className="text-sm text-muted-foreground">
+                    {settings?.primaryColor?.toUpperCase() || '#3b82f6'.toUpperCase()}
+                  </span>
                 </div>
               </div>
 

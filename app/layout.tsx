@@ -44,7 +44,7 @@ export default function RootLayout({
       >
             <SidebarProvider>
               <AppSidebar />
-            <SidebarTrigger className="cursor-pointer" />
+            <SidebarTrigger className="cursor-pointer " title="Abrir sidebar"/>
             <div className="flex flex-1 w-full">
               {children}
             </div>

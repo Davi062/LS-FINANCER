@@ -8,7 +8,16 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
-import { Calendar, Clock, DollarSign, FileText, Mail, Phone, Plus, Search, User } from "lucide-react";
+import { Calendar, Clock, DollarSign, FileText, Mail, Phone, Plus, Search, User, X, Save } from "lucide-react";
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type ProjectStatus = 'Em andamento' | 'Concluído' | 'Orçamento' | 'Atrasado' | 'Pendente';
 
@@ -152,23 +161,111 @@ const formatCurrency = (value: number) => {
 export default function ProjetosPage() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [isNewProjectDialogOpen, setIsNewProjectDialogOpen] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<string>('');
+  
+  // Estado para o formulário de novo projeto
+  const [newProject, setNewProject] = useState<{
+    client: {
+      name: string;
+      email: string;
+      phone: string;
+    };
+    title: string;
+    description: string;
+    status: ProjectStatus;
+    startDate: Date | undefined;
+    endDate: Date | undefined;
+    budget: string;
+    items: Array<{
+      description: string;
+      quantity: string;
+      unitPrice: string;
+      total: string;
+    }>;
+    notes: string;
+  }>({
+    client: {
+      name: '',
+      email: '',
+      phone: ''
+    },
+    title: '',
+    description: '',
+    status: 'Orçamento' as ProjectStatus,
+    startDate: undefined,
+    endDate: undefined,
+    budget: '',
+    items: [{ description: '', quantity: '1', unitPrice: '', total: '0' }],
+    notes: ''
+  });
 
-  const filteredProjects = projects.filter(project => 
-    project.client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    project.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Funções para manipular o formulário
+  const handleAddItem = () => {
+    setNewProject(prev => ({
+      ...prev,
+      items: [...prev.items, { description: '', quantity: '1', unitPrice: '', total: '0' }]
+    }));
+  };
 
-  const openProjectDetails = (project: Project) => {
+  const handleRemoveItem = (index: number) => {
+    if (newProject.items.length > 1) {
+      setNewProject(prev => ({
+        ...prev,
+        items: prev.items.filter((_, i) => i !== index)
+      }));
+    }
+  };
+
+  const handleItemChange = (index: number, field: 'description' | 'quantity' | 'unitPrice', value: string) => {
+    const newItems = [...newProject.items];
+    newItems[index] = { ...newItems[index], [field]: value };
+    
+    // Calcular total se quantidade ou preço unitário mudar
+    if (field === 'quantity' || field === 'unitPrice') {
+      const quantity = parseFloat(newItems[index].quantity) || 0;
+      const unitPrice = parseFloat(newItems[index].unitPrice) || 0;
+      newItems[index].total = (quantity * unitPrice).toFixed(2);
+    }
+    
+    setNewProject(prev => ({
+      ...prev,
+      items: newItems
+    }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Aqui você pode adicionar a lógica para salvar o novo projeto
+    console.log('Novo projeto:', newProject);
+    // Fechar o diálogo e limpar o formulário
+    setIsNewProjectDialogOpen(false);
+    // Limpar o formulário
+    setNewProject({
+      client: { name: '', email: '', phone: '' },
+      title: '',
+      description: '',
+      status: 'Orçamento',
+      startDate: new Date(),
+      endDate: undefined,
+      budget: '',
+      items: [{ description: '', quantity: '1', unitPrice: '', total: '0' }],
+      notes: ''
+    });
+  };
+
+  // Get unique client names
+  const clientNames = Array.from(new Set(projects.map(project => project.client.name)));
+
+  const filteredProjects = selectedClient 
+    ? projects.filter(project => project.client.name === selectedClient)
+    : projects;
+
+  const openProjectDetails = (project: Project, e?: React.MouseEvent) => {
+    e?.stopPropagation();
     setSelectedProject(project);
     setIsDialogOpen(true);
   };
-
-  useEffect(() => {
-    if (!searchTerm) {
-      <h1>Projetos</h1>
-    }
-  }, [filteredProjects, searchTerm]);
 
   return (
     <div className="p-6 space-y-6 lg:pr-96">
@@ -181,6 +278,7 @@ export default function ProjetosPage() {
           <Button
             variant="outline"
             className="w-full md:w-auto"
+            onClick={() => setIsNewProjectDialogOpen(true)}
           >
             <Plus className="mr-2 h-4 w-4" />
             Novo Projeto
@@ -190,7 +288,7 @@ export default function ProjetosPage() {
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
         {filteredProjects.map((project) => (
-          <Card key={project.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => openProjectDetails(project)}>
+          <Card key={project.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={(e) => openProjectDetails(project, e)}>
             <CardHeader className="pb-3">
               <div className="flex justify-between items-start">
                 <div>
@@ -242,26 +340,32 @@ export default function ProjetosPage() {
           </CardHeader>
           <CardContent className="space-y-2">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Buscar cliente..."
-                className="w-full pl-9"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+              <select
+                value={selectedClient}
+                onChange={(e) => setSelectedClient(e.target.value)}
+                className="w-full pl-3 pr-8 py-2 border rounded-md text-sm focus:ring-2 focus:ring-primary focus:outline-none"
+              >
+                <option value="">Todos os clientes</option>
+                {clientNames.map((clientName) => (
+                  <option key={clientName} value={clientName}>
+                    {clientName}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="space-y-1 max-h-[calc(100vh-300px)] overflow-y-auto pr-2 -mr-2">
-              {projects
-                .filter(project => 
-                  project.client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                  project.title.toLowerCase().includes(searchTerm.toLowerCase())
-                )
-                .map((project) => (
+              {filteredProjects.map((project) => (
                   <div 
                     key={project.id} 
-                    className="flex items-center p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer group"
-                    onClick={() => openProjectDetails(project)}
+                    className={`flex items-center p-2 rounded-lg transition-colors cursor-pointer group ${
+                      selectedClient === project.client.name 
+                        ? 'bg-muted/70 font-medium' 
+                        : 'hover:bg-muted/30'
+                    }`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedClient(project.client.name);
+                    }}
                   >
                     <div className="flex-shrink-0 w-2 h-2 rounded-full bg-primary mr-3"></div>
                     <div className="flex-1 min-w-0">
@@ -280,7 +384,13 @@ export default function ProjetosPage() {
                         </span>
                       </div>
                     </div>
-                    <div className="text-xs text-muted-foreground ml-2">
+                    <div 
+                      className="text-xs text-muted-foreground ml-2"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openProjectDetails(project, e);
+                      }}
+                    >
                       {project.progress}%
                     </div>
                   </div>
@@ -412,6 +522,321 @@ export default function ProjetosPage() {
           )}
         </DialogContent>
       </Dialog>
-    </div>
-  );
-}
+
+      {/* Diálogo de Novo Projeto */}
+      <Dialog open={isNewProjectDialogOpen} onOpenChange={setIsNewProjectDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">Novo Projeto</DialogTitle>
+            <DialogDescription>
+              Preencha os dados do novo projeto
+            </DialogDescription>
+          </DialogHeader>
+          
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Dados do Cliente */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Dados do Cliente</h3>
+                <div className="space-y-2">
+                  <Label htmlFor="clientName">Nome do Cliente</Label>
+                  <Input
+                    id="clientName"
+                    value={newProject.client.name}
+                    onChange={(e) => setNewProject(prev => ({
+                      ...prev,
+                      client: { ...prev.client, name: e.target.value }
+                    }))}
+                    placeholder="Nome completo"
+                    required
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="clientEmail">E-mail</Label>
+                    <Input
+                      id="clientEmail"
+                      type="email"
+                      value={newProject.client.email}
+                      onChange={(e) => setNewProject(prev => ({
+                        ...prev,
+                        client: { ...prev.client, email: e.target.value }
+                      }))}
+                      placeholder="email@exemplo.com"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="clientPhone">Telefone</Label>
+                    <Input
+                      id="clientPhone"
+                      value={newProject.client.phone}
+                      onChange={(e) => setNewProject(prev => ({
+                        ...prev,
+                        client: { ...prev.client, phone: e.target.value }
+                      }))}
+                      placeholder="(00) 00000-0000"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Dados do Projeto */}
+              <div className="space-y-6">
+                <h3 className="text-lg font-medium">Dados do Projeto</h3>
+                <div className="space-y-3">
+                  <Label htmlFor="projectTitle">Título do Projeto</Label>
+                  <Input
+                    id="projectTitle"
+                    value={newProject.title}
+                    onChange={(e) => setNewProject(prev => ({
+                      ...prev,
+                      title: e.target.value
+                    }))}
+                    placeholder="Ex: Site Institucional"
+                    className="w-full"
+                    required
+                  />
+                </div>
+                <div className="space-y-3">
+                  <Label htmlFor="projectDescription">Descrição</Label>
+                  <Textarea
+                    id="projectDescription"
+                    value={newProject.description}
+                    onChange={(e) => setNewProject(prev => ({
+                      ...prev,
+                      description: e.target.value
+                    }))}
+                    placeholder="Descreva o projeto detalhadamente"
+                    rows={3}
+                    className="w-full"
+                    required
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="projectStatus">Status</Label>
+                    <Select 
+                      value={newProject.status}
+                      onValueChange={(value) => setNewProject(prev => ({
+                        ...prev,
+                        status: value as ProjectStatus
+                      }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Orçamento">Orçamento</SelectItem>
+                        <SelectItem value="Em andamento">Em andamento</SelectItem>
+                        <SelectItem value="Concluído">Concluído</SelectItem>
+                        <SelectItem value="Atrasado">Atrasado</SelectItem>
+                        <SelectItem value="Pendente">Pendente</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Data de Início</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !newProject.startDate && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {newProject.startDate ? (
+                            newProject.startDate.toLocaleDateString('pt-BR')
+                          ) : (
+                            <span>Selecione uma data</span>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <CalendarComponent
+                          mode="single"
+                          selected={newProject.startDate}
+                          onSelect={(date) => date && setNewProject(prev => ({
+                            ...prev,
+                            startDate: date
+                          }))}
+                          initialFocus
+                          locale={ptBR}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Data de Término</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !newProject.endDate && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {newProject.endDate ? (
+                            newProject.endDate.toLocaleDateString('pt-BR')
+                          ) : (
+                            <span>Selecione uma data</span>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <CalendarComponent
+                          mode="single"
+                          selected={newProject.endDate}
+                          onSelect={(date) => setNewProject(prev => ({
+                            ...prev,
+                            endDate: date || undefined
+                          }))}
+                          initialFocus
+                          locale={ptBR}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="projectBudget">Orçamento Total (R$)</Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="projectBudget"
+                      type="number"
+                      step="0.01"
+                      value={newProject.budget}
+                      onChange={(e) => setNewProject(prev => ({
+                        ...prev,
+                        budget: e.target.value
+                      }))}
+                      className="pl-9"
+                      placeholder="0,00"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Itens do Projeto */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-medium">Itens do Projeto</h3>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAddItem}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Adicionar Item
+                </Button>
+              </div>
+              
+              <div className="space-y-4">
+                {newProject.items.map((item, index) => (
+                  <div key={index} className="grid grid-cols-12 gap-4 items-start">
+                    <div className="col-span-5 space-y-2">
+                      <Label htmlFor={`item-desc-${index}`}>Descrição</Label>
+                      <Input
+                        id={`item-desc-${index}`}
+                        value={item.description}
+                        onChange={(e) => handleItemChange(index, 'description', e.target.value)}
+                        placeholder="Descrição do item"
+                        required
+                      />
+                    </div>
+                    <div className="col-span-2 space-y-2">
+                      <Label htmlFor={`item-qty-${index}`}>Qtd.</Label>
+                      <Input
+                        id={`item-qty-${index}`}
+                        type="number"
+                        min="1"
+                        value={item.quantity}
+                        onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
+                        className="text-right"
+                        required
+                      />
+                    </div>
+                    <div className="col-span-2 space-y-2">
+                      <Label htmlFor={`item-price-${index}`}>Valor Unit.</Label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
+                        <Input
+                          id={`item-price-${index}`}
+                          type="number"
+                          step="0.01"
+                          value={item.unitPrice}
+                          onChange={(e) => handleItemChange(index, 'unitPrice', e.target.value)}
+                          className="pl-10 text-right"
+                          placeholder="0,00"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="col-span-2 space-y-2">
+                      <Label>Total</Label>
+                      <div className="flex h-10 items-center justify-end rounded-md border border-input bg-background px-3 py-2 text-sm">
+                        R$ {parseFloat(item.total || '0').toFixed(2)}
+                      </div>
+                    </div>
+                    <div className="col-span-1 flex items-end h-10">
+                      {newProject.items.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => handleRemoveItem(index)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Observações */}
+            <div className="space-y-2">
+              <Label htmlFor="projectNotes">Observações</Label>
+              <Textarea
+                id="projectNotes"
+                value={newProject.notes}
+                onChange={(e) => setNewProject(prev => ({
+                  ...prev,
+                  notes: e.target.value
+                }))}
+                placeholder="Adicione observações importantes sobre o projeto"
+                rows={3}
+              />
+            </div>
+
+            {/* Ações */}
+            <div className="flex justify-end gap-2 pt-4">
+                <Button 
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsNewProjectDialogOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button type="submit">
+                  <Save className="mr-2 h-4 w-4" />
+                  Salvar Projeto
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+    );
+  }
