@@ -1,140 +1,106 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/contexts/auth-context";
-import { User } from "@/types/user";
+import { motion, AnimatePresence } from "framer-motion";
 
-export default function LoginPage() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+export default function Page() {
+  const [flipped, setFlipped] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const { login } = useAuth();
-  const router = useRouter();
+  const [senha, setSenha] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  function handleClick(e: React.FormEvent) {
     e.preventDefault();
-    setIsLoading(true);
-    setError(null);
+    if (flipped) return;
 
-    try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Validate credentials
-      const isAdmin = email === 'davi@admin.com' && password === '123456';
-      const isClient = email === 'cliente@gmail.com' && password === '123456';
-      
-      if (!isAdmin && !isClient) {
-        throw new Error('E-mail ou senha incorretos');
-      }
-      
-      // Create user object based on credentials
-      const mockUser: User = {
-        id: isAdmin ? 'admin-1' : 'client-1',
-        name: isAdmin ? 'Davi Admin' : 'Cliente',
-        email,
-        role: isAdmin ? 'admin' : 'client',
-        avatar: `https://ui-avatars.com/api/?name=${isAdmin ? 'DA' : 'CL'}&background=random`,
-        phone: "(11) 91234-5678"
-      };
+    setFlipped(true);
+    setLoggedIn(true);
 
-      login(mockUser);
-      
-      // Redirect based on role
-      const redirectPath = isAdmin ? '/admin' : '/client';
-      router.push(redirectPath);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ocorreu um erro ao fazer login');
-      setIsLoading(false);
-    }
-  };
+    setTimeout(() => {
+      setFlipped(false);
+      setLoggedIn(false);
+      setEmail("");
+      setSenha("");
+    }, 2000);
+  }
 
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center gap-6 bg-gradient-to-t from-[#15192f] via-[#223347] via-55% to-[#3c5674] overflow-hidden">
-      {/* Logo */}
+
+      {/* ✅ Logo centralizada acima do form */}
       <img
         src="/logo.svg"
         alt="Logo"
         className="w-32 h-auto mb-2 drop-shadow-md rounded-3xl"
       />
 
-      {/* Login Form */}
+      {/* Cartão principal */}
       <motion.div
         className="relative w-full max-w-md p-8 rounded-3xl bg-white/10 backdrop-blur-md shadow-lg z-10"
-        whileHover={{ scale: 1.02 }}
+        whileHover={{ scale: 1.05 }}
         transition={{ type: "spring", stiffness: 200, damping: 15 }}
       >
-        <div className="w-full">
-          <h1 className="text-2xl font-bold text-white text-center mb-8">Acesse sua conta</h1>
-          
-          {error && (
-            <div className="mb-4 p-3 bg-red-500/20 border border-red-500 text-red-100 rounded-md text-sm">
-              {error}
-            </div>
-          )}
-          
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-white/80 mb-1">
-                E-mail
-              </label>
+        <motion.div
+          className="relative w-full h-[360px] transition-transform duration-700 ease-in-out"
+          animate={{ rotateY: flipped ? 180 : 0 }}
+          transition={{ duration: 0.8 }}
+          style={{ transformStyle: "preserve-3d", perspective: 1000 }}
+        >
+          {/* Frente */}
+          <div
+            className="absolute inset-0 flex flex-col items-center justify-center gap-6 w-full"
+            style={{ backfaceVisibility: "hidden" }}
+          >
+            <h1 className="text-3xl font-bold text-white mb-2 drop-shadow">
+              Faça seu login
+            </h1>
+
+            <form onSubmit={handleClick} className="flex flex-col gap-4 w-5/6">
               <input
-                id="email"
-                type="email"
+                type="text"
+                placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-primary/50"
-                placeholder="seu@email.com"
-                required
-                disabled={isLoading}
+                className="w-full p-2 border border-white/60 bg-white/20 text-white placeholder-white rounded"
               />
-            </div>
-            
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label htmlFor="password" className="block text-sm font-medium text-white/80">
-                  Senha
-                </label>
-                <a href="#" className="text-xs text-primary hover:underline">
-                  Esqueceu a senha?
-                </a>
-              </div>
               <input
-                id="password"
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-primary/50"
-                placeholder="••••••••"
-                required
-                disabled={isLoading}
+                placeholder="Senha"
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
+                className="w-full p-2 border border-white/60 bg-white/20 text-white placeholder-white rounded"
               />
-            </div>
-            
-            <button
-              type="submit"
-              disabled={isLoading}
-              className={`w-full py-2 px-4 rounded-lg font-medium transition-colors ${
-                isLoading
-                  ? 'bg-primary/70 cursor-not-allowed'
-                  : 'bg-primary hover:bg-primary/90'
-              }`}
-            >
-              {isLoading ? 'Entrando...' : 'Entrar'}
-            </button>
-          </form>
-          
-          <div className="mt-6 text-center text-sm text-white/70">
-            <p>Não tem uma conta?{' '}
-              <a href="/register" className="text-primary hover:underline">
-                Cadastre-se
-              </a>
-            </p>
+              <button
+                type="submit"
+                className="w-2/6 max-w-xs mx-auto bg-[#223347] hover:bg-[#3c5674] text-white font-semibold rounded p-2 transition-transform duration-200 ease-in-out active:scale-90"
+              >
+                Logar
+              </button>
+            </form>
           </div>
-        </div>
+
+          {/* Verso */}
+          <div
+            className="absolute inset-0 flex items-center justify-center bg-white/20 text-white text-xl font-semibold rounded-lg"
+            style={{
+              backfaceVisibility: "hidden",
+              transform: "rotateY(180deg)",
+            }}
+          >
+            <AnimatePresence>
+              {loggedIn && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  ✅ Login realizado com sucesso!
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </motion.div>
       </motion.div>
     </div>
   );
