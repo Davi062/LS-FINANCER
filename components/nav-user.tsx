@@ -1,5 +1,7 @@
 "use client"
 
+import { useAuth } from "@/contexts/auth-context"
+import { useRouter } from "next/navigation"
 import {
   BadgeCheck,
   Bell,
@@ -40,6 +42,13 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+  const { logout } = useAuth()
+  const router = useRouter()
+
+  const handleLogout = async () => {
+    await logout()
+    router.push('/login')
+  }
 
   return (
     <SidebarMenu>
@@ -102,9 +111,9 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <LogOut />
-              Log out
+            <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400">
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Sair</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

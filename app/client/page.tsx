@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Download, Filter, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { UserButton } from "@/components/user-button";
 
 // Dados de exemplo
 const monthlyData = [
@@ -49,17 +50,22 @@ export default function ClientPage() {
 
   return (
     <div className="min-h-screen w-full">
+     
       <main className="p-4 md:p-6 space-y-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h1 className="text-2xl font-bold tracking-tight">Olá, Cliente</h1>
               <p className="text-muted-foreground">Acompanhe suas finanças</p>
             </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="gap-2">
+            <div className="flex items-center gap-3">
+              <Button variant="outline" size="sm" className="gap-2 hover:bg-white/10 hover:text-white">
                 <Download className="h-4 w-4" />
                 Exportar
               </Button>
+              <div className="h-8 w-px bg-gray-200 dark:bg-gray-700"></div>
+              <div className="flex items-center">
+                <UserButton />
+              </div>
             </div>
           </div>
 

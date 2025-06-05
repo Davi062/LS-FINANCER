@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useAuth } from "@/contexts/auth-context"
 import {
   AudioWaveform,
   BookOpen,
@@ -97,16 +98,31 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { user } = useAuth()
+  
+  if (!user) return null
+  
+  // Update the user data with the authenticated user
+  const sidebarData = {
+    ...data,
+    user: {
+      ...data.user,
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar || data.user.avatar
+    }
+  }
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher teams={sidebarData.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.items} />
+        <NavMain items={sidebarData.items} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={sidebarData.user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
