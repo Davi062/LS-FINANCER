@@ -2,11 +2,10 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import { AppSidebar } from "@/components/app-sidebar";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Toaster } from "sonner";
-import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/auth-context";
+import { AuthGuard } from "@/components/auth-guard";
+import { AuthenticatedLayout } from "@/components/authenticated-layout";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -42,14 +41,15 @@ export default function RootLayout({
           geistMono.variable
         )}
       >
-            <SidebarProvider>
-              <AppSidebar />
-            <SidebarTrigger className="cursor-pointer " title="Abrir sidebar"/>
-            <div className="flex flex-1 w-full">
+        <AuthProvider>
+          <AuthGuard>
+            <AuthenticatedLayout>
+             
               {children}
-            </div>
-              <Toaster position="top-right" richColors />
-            </SidebarProvider>
+            </AuthenticatedLayout>
+            <Toaster position="top-right" richColors />
+          </AuthGuard>
+        </AuthProvider>
       </body>
     </html>
   );

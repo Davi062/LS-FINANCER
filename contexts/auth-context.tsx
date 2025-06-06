@@ -14,6 +14,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null
+  isLoading: boolean
   login: (userData: User) => void
   logout: () => void
 }
@@ -23,6 +24,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   const login = (userData: User) => {
     setUser(userData)
@@ -38,14 +40,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Verificar se há usuário salvo no localStorage ao carregar
   useEffect(() => {
+    setIsLoading(true)
     const savedUser = localStorage.getItem('user')
     if (savedUser) {
       setUser(JSON.parse(savedUser))
     }
+    setIsLoading(false)
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, logout }}>
       {children}
     </AuthContext.Provider>
   )

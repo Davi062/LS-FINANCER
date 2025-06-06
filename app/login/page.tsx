@@ -2,26 +2,74 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/auth-context";
 
-export default function Page() {
+type User = {
+  id: string;
+  name: string;
+  email: string;
+  role: 'admin' | 'client';
+};
+
+export default function LoginPage() {
   const [flipped, setFlipped] = useState(false);
-  const [loggedIn, setLoggedIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [error, setError] = useState("");
+  const { login } = useAuth();
+  const router = useRouter();
 
-  function handleClick(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (flipped) return;
+    
+    setIsLoading(true);
+    setError("");
 
-    setFlipped(true);
-    setLoggedIn(true);
-
-    setTimeout(() => {
-      setFlipped(false);
-      setLoggedIn(false);
-      setEmail("");
-      setSenha("");
-    }, 2000);
+    try {
+      // Validação das credenciais
+      if (email === 'admin@admin.com' && senha === '123456') {
+        const adminUser: User = {
+          id: '1',
+          name: 'Administrador',
+          email: 'admin@admin.com',
+          role: 'admin'
+        };
+        
+        login(adminUser);
+        setFlipped(true);
+        
+        setTimeout(() => {
+          router.push('/admin');
+        }, 1000);
+        
+      } else if (email === 'client@gmail.com' && senha === '123456') {
+        const clientUser: User = {
+          id: '2',
+          name: 'Cliente',
+          email: 'client@gmail.com',
+          role: 'client'
+        };
+        
+        login(clientUser);
+        setFlipped(true);
+        
+        setTimeout(() => {
+          router.push('/client');
+        }, 1000);
+        
+      } else {
+        throw new Error('Credenciais inválidas');
+      }
+      
+    } catch (err) {
+      setError("Credenciais inválidas. Tente novamente.");
+      console.error("Erro no login:", err);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -55,7 +103,7 @@ export default function Page() {
               Faça seu login
             </h1>
 
-            <form onSubmit={handleClick} className="flex flex-col gap-4 w-5/6">
+            <form className="w-full space-y-6" onSubmit={handleSubmit}>
               <input
                 type="text"
                 placeholder="Email"
@@ -88,8 +136,9 @@ export default function Page() {
             }}
           >
             <AnimatePresence>
-              {loggedIn && (
+              {flipped && (
                 <motion.div
+                  key="success-message"
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0 }}
