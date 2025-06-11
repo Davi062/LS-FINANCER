@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -21,7 +20,9 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { Separator } from '@radix-ui/react-separator';
+import { 
+  ChartNoAxesCombined,
+} from 'lucide-react';
 
 // Mock data for the chart
 const monthlyData = [
@@ -131,12 +132,12 @@ export default function AdminPage() {
 
   return (
 
-    <div className="p-6 space-y-6 bg-red-5 w-full">
-      <h1 className="text-3xl font-bold"></h1>
+    <div className="lg:w-full w-full ">
+      <h1 className="text-3xl font-bold mb-4">Dashboard</h1>
       
       {/* Income/Expense Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-3">
+        <Card className="shadow-lg hover:shadow-xl transition-colors duration-7000 ">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Ganhos Totais</CardTitle>
             <span className="h-4 w-4 text-muted-foreground">💰</span>
@@ -146,7 +147,7 @@ export default function AdminPage() {
             <p className="text-xs text-muted-foreground">+20.1% em relação ao mês passado</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-lg hover:shadow-xl transition-colors duration-7000 ">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Gastos Totais</CardTitle>
             <span className="h-4 w-4 text-muted-foreground">💸</span>
@@ -159,9 +160,10 @@ export default function AdminPage() {
       </div>
 
       {/* Chart and Clients */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 ">
         <Card className="md:col-span-2">
-          <CardHeader>
+          <CardHeader className="flex flex-row-reverse items-center justify-between ">
+          <ChartNoAxesCombined className="w-5 h-5 text-muted-foreground" />
             <CardTitle>Desempenho Mensal</CardTitle>
           </CardHeader>
           <CardContent className="h-80">

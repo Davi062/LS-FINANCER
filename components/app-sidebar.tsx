@@ -51,7 +51,7 @@ const data = {
       icon: LayoutDashboard,
       items: [
         {
-          title: "Dashboard",
+          title: "VisãoGeral",
           url: "/admin",
           icon: PieChart,
         },
@@ -63,7 +63,7 @@ const data = {
       icon: ScrollText,
       items: [
         {
-          title: "Projetos",
+          title: "Detalhes",
           url: "/admin/projetos",
           icon: ScrollText,
         },
@@ -75,7 +75,7 @@ const data = {
       icon: User,
       items: [
         {
-          title: "Usuários",
+          title: "Gerenciar",
           url: "/admin/users",
           icon: User,
         },
@@ -87,7 +87,7 @@ const data = {
      icon: Settings2,
      items: [
        {
-         title: "Configurações",
+         title: "Preferências",
          url: "/admin/settings",
          icon: Settings2,
        },
