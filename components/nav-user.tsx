@@ -29,6 +29,8 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 
 export function NavUser({
   user,
@@ -40,6 +42,18 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+  const router = useRouter()
+
+  const handleLogout = () => {
+    // Clear all items from local storage
+    if (typeof window !== 'undefined') {
+      localStorage.clear()
+    }
+    // Redirect to login page
+    router.push('/login')
+    // Force a full page reload to ensure all states are reset
+    window.location.reload()
+  }
 
   return (
     <SidebarMenu>
@@ -102,9 +116,9 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <LogOut />
-              Log out
+            <DropdownMenuItem onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Log out</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

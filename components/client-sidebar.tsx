@@ -29,6 +29,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar"
+import { NavSecondary } from "./nav-secondary"
 
 // This is sample data.
 const data = {
@@ -91,7 +92,7 @@ export function ClientSidebar({ ...props }: React.ComponentProps<typeof Sidebar>
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.items} />
+        <NavSecondary items={data.items} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />

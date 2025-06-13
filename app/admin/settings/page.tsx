@@ -1,13 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useTheme } from "next-themes";
 import { toast } from "sonner";
 import { 
-  Moon, Sun, Monitor, Save, RotateCcw, Loader2, 
-  Bell, Languages, Palette, User, 
-  Settings as SettingsIcon, Mail, Lock, HardDrive, Clock, AlertTriangle,
-  RotateCw
+  Save, RotateCcw, Loader2, Bell, 
+  Languages, User, HardDrive, Clock,
+  Settings as SettingsIcon, Moon, Sun, Palette
 } from "lucide-react";
 
 // Components
@@ -19,30 +17,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
+import { useTheme } from "@/contexts/theme-context";
 
-type Theme = "light" | "dark" | "system";
 type Language = "pt-BR" | "en-US" | "es-ES";
 
 export interface AppSettings {
-  // Aparência
-  theme: Theme;
-  primaryColor: string; // Nova propriedade para a cor personalizada
   language: Language;
   fontSize: number;
   compactMode: boolean;
-  
-  // Notificações
   emailNotifications: boolean;
   pushNotifications: boolean;
   marketingEmails: boolean;
   notificationSound: boolean;
-  
-  // Conta
   timezone: string;
   dateFormat: string;
   timeFormat: string;
-  
-  // Sistema
   autoSave: boolean;
   developerMode: boolean;
   analytics: boolean;
@@ -50,49 +39,32 @@ export interface AppSettings {
 
 // Default settings
 const DEFAULT_SETTINGS: AppSettings = {
-  // Aparência
-  theme: "system",
-  primaryColor: "#3b82f6", // Cor azul padrão
   language: "pt-BR",
   fontSize: 14,
   compactMode: false,
-  
-  // Notificações
   emailNotifications: true,
   pushNotifications: true,
   marketingEmails: false,
   notificationSound: true,
-  
-  // Conta
   timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   dateFormat: "dd/MM/yyyy",
   timeFormat: "HH:mm",
-  
-  // Sistema
   autoSave: true,
   developerMode: false,
-  analytics: true
+  analytics: true,
 };
 
-// Opções de idioma suportados
-const LANGUAGES = [
-  { value: "pt-BR", label: "Português (Brasil)" },
-  { value: "en-US", label: "English (US)" },
-  { value: "es-ES", label: "Español" },
-];
-
-// Fuso horários comuns
+// Timezones
 const TIMEZONES = [
   "America/Sao_Paulo",
   "America/New_York",
-  "America/Los_Angeles",
   "Europe/London",
   "Europe/Paris",
   "Asia/Tokyo",
-  "Australia/Sydney"
+  "Australia/Sydney",
 ];
 
-// Formatos de data
+// Date formats
 const DATE_FORMATS = [
   { value: "dd/MM/yyyy", label: "DD/MM/AAAA" },
   { value: "MM/dd/yyyy", label: "MM/DD/AAAA" },
@@ -100,7 +72,7 @@ const DATE_FORMATS = [
   { value: "dd MMM yyyy", label: "DD MMM AAAA" },
 ];
 
-// Formatos de hora
+// Time formats
 const TIME_FORMATS = [
   { value: "HH:mm", label: "24 horas" },
   { value: "hh:mm a", label: "12 horas" },
@@ -110,107 +82,12 @@ export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("appearance");
-  const { theme, setTheme } = useTheme();
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [hasChanges, setHasChanges] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const { theme, toggleTheme } = useTheme();
 
-  // Aplicar a cor personalizada ao tema
-  const applyCustomColor = (color: string | undefined) => {
-    if (!color) return;
-    
-    try {
-      // Remove a classe de cor anterior, se existir
-      const existingStyle = document.getElementById('custom-theme-color');
-      
-      // Cria uma nova tag de estilo com a cor personalizada
-      const style = document.createElement('style');
-      style.id = 'custom-theme-color';
-      
-      const hoverColor = adjustColor(color, -10);
-      const activeColor = adjustColor(color, -20);
-      
-      style.textContent = `
-        :root {
-          --primary: ${color};
-          --primary-foreground: #ffffff;
-          --primary-hover: ${hoverColor};
-          --primary-active: ${activeColor};
-        }
-      `;
-      
-      // Remove o estilo antigo e adiciona o novo
-      if (existingStyle && existingStyle.parentNode) {
-        existingStyle.parentNode.removeChild(existingStyle);
-      }
-      
-      if (document.head) {
-        document.head.appendChild(style);
-      }
-    } catch (error) {
-      console.error('Erro ao aplicar cor personalizada:', error);
-    }
-  };
-
-  // Função auxiliar para ajustar o brilho de uma cor
-  const adjustColor = (color: string, amount: number): string => {
-    if (!color) return '#3b82f6'; // Cor padrão se não houver cor
-    
-    try {
-      // Remove o # do início, se existir
-      const hex = color.replace('#', '');
-      
-      // Verifica se o valor hexadecimal é válido
-      if (!/^[0-9A-Fa-f]{6}$/i.test(hex)) {
-        return '#3b82f6'; // Retorna cor padrão se o formato for inválido
-      }
-      
-      // Converte para valores RGB
-      const r = Math.max(0, Math.min(255, parseInt(hex.substring(0, 2), 16) + amount));
-      const g = Math.max(0, Math.min(255, parseInt(hex.substring(2, 4), 16) + amount));
-      const b = Math.max(0, Math.min(255, parseInt(hex.substring(4, 6), 16) + amount));
-      
-      // Converte de volta para hexadecimal
-      return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
-    } catch (error) {
-      console.error('Erro ao ajustar cor:', error);
-      return '#3b82f6'; // Retorna cor padrão em caso de erro
-    }
-  };
-
-  // Aplicar o tema e a cor personalizada quando as configurações forem carregadas ou alteradas
-  useEffect(() => {
-    if (isLoading || typeof document === 'undefined') return;
-    
-    try {
-      // Aplica o tema
-      const themeToApply = settings?.theme || 'system';
-      setTheme(themeToApply);
-      
-      // Aplica a cor personalizada
-      const colorToApply = settings?.primaryColor || '#3b82f6';
-      applyCustomColor(colorToApply);
-      
-      // Atualiza a classe do documento para o tema
-      if (themeToApply === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else if (themeToApply === 'light') {
-        document.documentElement.classList.remove('dark');
-      } else {
-        // Tema do sistema
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        if (prefersDark) {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
-      }
-    } catch (error) {
-      console.error('Erro ao aplicar tema e cor:', error);
-    }
-  }, [settings?.primaryColor, settings?.theme, isLoading, setTheme]);
-
-  // Carregar configurações do localStorage ao montar o componente
+  // Load settings
   useEffect(() => {
     const loadSettings = () => {
       try {
@@ -223,32 +100,20 @@ export default function SettingsPage() {
         const savedSettings = localStorage.getItem("appSettings");
         if (savedSettings) {
           const parsedSettings = JSON.parse(savedSettings);
-          
-          // Valida e mescla com as configurações padrão
-          const validatedSettings: AppSettings = {
+          setSettings({
             ...DEFAULT_SETTINGS,
             ...parsedSettings,
-            // Garante que os valores obrigatórios existam
-            theme: ['light', 'dark', 'system'].includes(parsedSettings.theme) 
-              ? parsedSettings.theme 
-              : DEFAULT_SETTINGS.theme,
-            primaryColor: parsedSettings.primaryColor || DEFAULT_SETTINGS.primaryColor,
-          };
+          });
           
-          setSettings(validatedSettings);
-          
-          // Atualiza a data do último salvamento
           const savedAt = localStorage.getItem("settingsSavedAt");
           if (savedAt) {
             setLastSaved(new Date(savedAt));
           }
         } else {
-          // Usa as configurações padrão se não houver configurações salvas
           setSettings(DEFAULT_SETTINGS);
         }
       } catch (error) {
-        console.error("Erro ao carregar configurações:", error);
-        // Usa as configurações padrão em caso de erro
+        console.error("Error loading settings:", error);
         setSettings(DEFAULT_SETTINGS);
       } finally {
         setIsLoading(false);
@@ -256,126 +121,44 @@ export default function SettingsPage() {
     };
 
     loadSettings();
-  }, [setTheme]);
+  }, []);
 
-  // Atualiza uma configuração específica
+  // Update a specific setting
   const updateSetting = <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => {
     setSettings(prev => ({
       ...prev,
       [key]: value
     }));
-    
-    // Marca que há alterações não salvas
     setHasChanges(true);
   };
 
-  // Salva as configurações
+  // Save settings
   const saveSettings = async () => {
     if (isSaving) return;
     
     setIsSaving(true);
     
     try {
-      // Valida as configurações antes de salvar
-      const settingsToSave: AppSettings = {
-        ...DEFAULT_SETTINGS,
-        ...settings,
-        // Garante que o tema seja válido
-        theme: ['light', 'dark', 'system'].includes(settings.theme) 
-          ? settings.theme 
-          : DEFAULT_SETTINGS.theme,
-        // Garante que a cor seja válida
-        primaryColor: /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/i.test(settings.primaryColor)
-          ? settings.primaryColor
-          : DEFAULT_SETTINGS.primaryColor,
-      };
-      
-      // Atualiza o estado com as configurações validadas
-      setSettings(settingsToSave);
-      
-      // Simula uma chamada de API
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      // Salva no localStorage
-      if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
-        try {
-          localStorage.setItem("appSettings", JSON.stringify(settingsToSave));
-          const now = new Date();
-          localStorage.setItem("settingsSavedAt", now.toISOString());
-          setLastSaved(now);
-        } catch (storageError) {
-          console.error("Erro ao acessar o localStorage:", storageError);
-          toast.error("Não foi possível salvar as configurações localmente.");
-          return;
-        }
-      }
-      
-      // Aplica o tema e a cor personalizada após salvar
-      setTheme(settingsToSave.theme);
-      applyCustomColor(settingsToSave.primaryColor);
-      
-      // Força a atualização do tema no documento
-      try {
-        if (settingsToSave.theme === 'dark') {
-          document.documentElement.classList.add('dark');
-        } else if (settingsToSave.theme === 'light') {
-          document.documentElement.classList.remove('dark');
-        } else {
-          // Tema do sistema
-          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-          if (prefersDark) {
-            document.documentElement.classList.add('dark');
-          } else {
-            document.documentElement.classList.remove('dark');
-          }
-        }
-      } catch (themeError) {
-        console.error("Erro ao aplicar o tema:", themeError);
-      }
-      
-      toast.success("Configurações salvas com sucesso!");
+      localStorage.setItem('appSettings', JSON.stringify(settings));
+      const now = new Date();
+      localStorage.setItem('settingsSavedAt', now.toISOString());
+      setLastSaved(now);
       setHasChanges(false);
+      toast.success("Configurações salvas com sucesso!");
     } catch (error) {
-      console.error("Erro ao salvar configurações:", error);
-      toast.error("Erro ao salvar as configurações. Tente novamente.");
+      console.error("Error saving settings:", error);
+      toast.error("Erro ao salvar as configurações");
     } finally {
       setIsSaving(false);
     }
   };
 
-  // Redefine as configurações para os padrões
+  // Reset to default settings
   const resetToDefaults = () => {
-    if (window.confirm("Tem certeza que deseja redefinir todas as configurações para os valores padrão?")) {
-      // Aplica as configurações padrão
+    if (confirm("Tem certeza que deseja redefinir todas as configurações para os valores padrão?")) {
       setSettings(DEFAULT_SETTINGS);
-      
-      // Aplica o tema e a cor padrão imediatamente
-      setTheme(DEFAULT_SETTINGS.theme);
-      applyCustomColor(DEFAULT_SETTINGS.primaryColor);
-      
-      // Limpa as configurações salvas
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem("appSettings");
-        localStorage.removeItem("settingsSavedAt");
-      }
-      
-      // Força a atualização do tema no documento
-      if (DEFAULT_SETTINGS.theme === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else if (DEFAULT_SETTINGS.theme === 'light') {
-        document.documentElement.classList.remove('dark');
-      } else {
-        // Tema do sistema
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        if (prefersDark) {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
-      }
-      
-      toast.success("Configurações redefinidas para os valores padrão!");
       setHasChanges(true);
+      toast.success("Configurações redefinidas para os valores padrão");
     }
   };
 
@@ -386,47 +169,43 @@ export default function SettingsPage() {
       </div>
     );
   }
-
   return (
-    <div className="p-6 space-y-6  mx-auto w-full">
+    <div className="p-6 space-y-6 mx-auto w-full">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <SettingsIcon className="h-8 w-8" />
             Configurações
           </h1>
-          <p className="text-muted-foreground">
-            Gerencie suas preferências e configurações de conta
-            {lastSaved && (
-              <span className="text-xs ml-2 text-muted-foreground">
-                (Salvo em {lastSaved.toLocaleString()})
-              </span>
-            )}
+          <p className="text-sm text-muted-foreground mt-1">
+            Personalize a aparência e o comportamento do sistema
           </p>
         </div>
-        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+        <div className="flex items-center gap-2">
           <Button 
             variant="outline" 
+            size="sm" 
             onClick={resetToDefaults}
             disabled={isSaving}
-            className="gap-2 flex-1 sm:flex-initial"
           >
-            <RotateCw className="h-4 w-4" />
-            <span className="hidden sm:inline">Redefinir Tudo</span>
+            <RotateCcw className="h-4 w-4 mr-2" />
+            Redefinir
           </Button>
           <Button 
             onClick={saveSettings} 
             disabled={!hasChanges || isSaving}
-            className="gap-2 flex-1 sm:flex-initial"
           >
             {isSaving ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Salvando...
+              </>
             ) : (
-              <Save className="h-4 w-4" />
+              <>
+                <Save className="h-4 w-4 mr-2" />
+                Salvar alterações
+              </>
             )}
-            <span className="hidden sm:inline">
-              {isSaving ? 'Salvando...' : 'Salvar Alterações'}
-            </span>
           </Button>
         </div>
       </div>
@@ -451,7 +230,7 @@ export default function SettingsPage() {
           </TabsTrigger>
         </TabsList>
 
-        {/* Aba de Aparência */}
+        {/* Appearance Tab */}
         <TabsContent value="appearance" className="space-y-6">
           <Card>
             <CardHeader>
@@ -464,99 +243,65 @@ export default function SettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="theme">Tema</Label>
-                <p className="text-sm text-muted-foreground">
-                  Escolha como o sistema deve ser exibido
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
-                  {[
-                    { value: 'light', label: 'Claro', icon: Sun },
-                    { value: 'dark', label: 'Escuro', icon: Moon },
-                    { value: 'system', label: 'Sistema', icon: Monitor },
-                  ].map(({ value, label, icon: Icon }) => (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => updateSetting('theme', value as Theme)}
-                      className={`flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all ${
-                        settings.theme === value
-                          ? 'border-primary bg-primary/10 dark:bg-primary/20'
-                          : 'border-muted hover:border-primary/50 hover:bg-muted/50'
-                      }`}
-                    >
-                      <div className="p-3 mb-2 rounded-md bg-muted">
-                        <Icon className="h-6 w-6" />
-                      </div>
-                      <span className="font-medium">{label}</span>
-                    </button>
-                  ))}
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="theme">Tema</Label>
+                  <p className="text-sm text-muted-foreground">
+                    {theme === 'light' ? 'Tema claro ativado' : 'Tema escuro ativado'}
+                  </p>
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="primaryColor">Cor Principal</Label>
-                <p className="text-sm text-muted-foreground">
-                  Escolha uma cor personalizada para o tema
-                </p>
-                <div className="flex items-center gap-4">
-                  <input
-                    type="color"
-                    id="primaryColor"
-                    value={settings.primaryColor}
-                    onChange={(e) => updateSetting('primaryColor', e.target.value)}
-                    className="h-10 w-16 cursor-pointer rounded-md border border-input bg-background"
-                  />
-                  <span className="text-sm text-muted-foreground">
-                    {settings?.primaryColor?.toUpperCase() || '#3b82f6'.toUpperCase()}
-                  </span>
-                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={toggleTheme}
+                  className="gap-2"
+                >
+                  {theme === 'light' ? (
+                    <>
+                      <Moon className="h-4 w-4" />
+                      Modo Escuro
+                    </>
+                  ) : (
+                    <>
+                      <Sun className="h-4 w-4" />
+                      Modo Claro
+                    </>
+                  )}
+                </Button>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="language">Idioma</Label>
-                <p className="text-sm text-muted-foreground">
-                  Selecione o idioma do sistema
-                </p>
                 <Select
                   value={settings.language}
-                  onValueChange={(value) => updateSetting('language', value as Language)}
+                  onValueChange={(value: Language) => updateSetting("language", value)}
                 >
-                  <SelectTrigger className="w-full sm:w-1/2">
-                    <div className="flex items-center gap-2">
-                      <Languages className="h-4 w-4 text-muted-foreground" />
-                      <SelectValue placeholder="Selecione um idioma" />
-                    </div>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Selecione o idioma" />
                   </SelectTrigger>
                   <SelectContent>
-                    {LANGUAGES.map((lang) => (
-                      <SelectItem key={lang.value} value={lang.value}>
-                        {lang.label}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="pt-BR">Português (Brasil)</SelectItem>
+                    <SelectItem value="en-US">English (US)</SelectItem>
+                    <SelectItem value="es-ES">Español</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="fontSize">Tamanho da Fonte</Label>
-                <p className="text-sm text-muted-foreground">
-                  Ajuste o tamanho da fonte do sistema
-                </p>
                 <div className="flex items-center gap-4">
-                  <span className="text-xs">A</span>
-                  <input
+                  <span className="text-sm text-muted-foreground">A</span>
+                  <Input
                     type="range"
                     min="12"
-                    max="20"
+                    max="24"
+                    step="1"
                     value={settings.fontSize}
-                    onChange={(e) => updateSetting('fontSize', parseInt(e.target.value))}
-                    className="flex-1 h-2 bg-muted rounded-lg appearance-none cursor-pointer"
+                    onChange={(e) => updateSetting("fontSize", Number(e.target.value))}
+                    className="w-full max-w-xs"
                   />
-                  <span className="text-base">A</span>
-                  <span className="w-10 text-center text-sm font-medium">
-                    {settings.fontSize}px
-                  </span>
+                  <span className="text-sm text-muted-foreground">A</span>
+                  <span className="text-sm w-8 text-center">{settings.fontSize}px</span>
                 </div>
               </div>
 
@@ -577,7 +322,7 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
-        {/* Aba de Notificações */}
+        {/* Notifications Tab */}
         <TabsContent value="notifications" className="space-y-6">
           <Card>
             <CardHeader>
@@ -586,7 +331,7 @@ export default function SettingsPage() {
                 Notificações
               </CardTitle>
               <CardDescription>
-                Controle como você recebe notificações
+                Gerencie suas preferências de notificação
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -595,7 +340,7 @@ export default function SettingsPage() {
                   <div>
                     <Label htmlFor="emailNotifications">Notificações por E-mail</Label>
                     <p className="text-sm text-muted-foreground">
-                      Receba notificações importantes por e-mail
+                      Receber notificações importantes por e-mail
                     </p>
                   </div>
                   <Switch
@@ -605,11 +350,13 @@ export default function SettingsPage() {
                   />
                 </div>
 
+                <Separator />
+
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label htmlFor="pushNotifications">Notificações Push</Label>
+                    <Label htmlFor="pushNotifications">Notificações do Navegador</Label>
                     <p className="text-sm text-muted-foreground">
-                      Receba notificações no navegador
+                      Receber notificações no navegador
                     </p>
                   </div>
                   <Switch
@@ -619,11 +366,13 @@ export default function SettingsPage() {
                   />
                 </div>
 
+                <Separator />
+
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="marketingEmails">E-mails de Marketing</Label>
                     <p className="text-sm text-muted-foreground">
-                      Receba ofertas e atualizações por e-mail
+                      Receber ofertas e atualizações por e-mail
                     </p>
                   </div>
                   <Switch
@@ -633,11 +382,13 @@ export default function SettingsPage() {
                   />
                 </div>
 
+                <Separator />
+
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="notificationSound">Som de Notificação</Label>
                     <p className="text-sm text-muted-foreground">
-                      Ative para reproduzir som ao receber notificações
+                      Reproduzir som ao receber notificações
                     </p>
                   </div>
                   <Switch
@@ -651,7 +402,7 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
-        {/* Aba de Conta */}
+        {/* Account Tab */}
         <TabsContent value="account" className="space-y-6">
           <Card>
             <CardHeader>
@@ -734,7 +485,7 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
-        {/* Aba de Sistema */}
+        {/* System Tab */}
         <TabsContent value="system" className="space-y-6">
           <Card>
             <CardHeader>
@@ -752,7 +503,7 @@ export default function SettingsPage() {
                   <div>
                     <Label htmlFor="autoSave">Salvamento Automático</Label>
                     <p className="text-sm text-muted-foreground">
-                      Salva automaticamente as alterações feitas
+                      Salvar alterações automaticamente
                     </p>
                   </div>
                   <Switch
@@ -762,11 +513,13 @@ export default function SettingsPage() {
                   />
                 </div>
 
+                <Separator />
+
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="developerMode">Modo Desenvolvedor</Label>
                     <p className="text-sm text-muted-foreground">
-                      Ative para acessar ferramentas de desenvolvedor
+                      Ativar ferramentas de desenvolvedor
                     </p>
                   </div>
                   <Switch
@@ -776,11 +529,13 @@ export default function SettingsPage() {
                   />
                 </div>
 
+                <Separator />
+
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label htmlFor="analytics">Compartilhar Dados de Uso</Label>
+                    <Label htmlFor="analytics">Análise de Uso</Label>
                     <p className="text-sm text-muted-foreground">
-                      Ajude-nos a melhorar compartilhando dados anônimos de uso
+                      Compartilhar dados de uso anônimos para melhorias
                     </p>
                   </div>
                   <Switch
@@ -790,23 +545,11 @@ export default function SettingsPage() {
                   />
                 </div>
               </div>
-
-              <Separator className="my-6" />
-
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-medium">Redefinir Configurações</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Volte todas as configurações para os valores padrão
-                  </p>
-                </div>
-                <Button
-                  variant="outline"
-                  onClick={resetToDefaults}
-                  className="gap-2"
-                >
-                  <RotateCw className="h-4 w-4" />
-                  Redefinir Tudo
+              
+              <div className="pt-6">
+                <Button variant="outline" size="sm" className="text-red-500" onClick={resetToDefaults}>
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Redefinir todas as configurações
                 </Button>
               </div>
             </CardContent>

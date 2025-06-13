@@ -6,6 +6,7 @@ import { Toaster } from "sonner";
 import { AuthProvider } from "@/contexts/auth-context";
 import { AuthGuard } from "@/components/auth-guard";
 import { AuthenticatedLayout } from "@/components/authenticated-layout";
+import { ThemeProvider } from "@/contexts/theme-context";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -41,15 +42,16 @@ export default function RootLayout({
           geistMono.variable
         )}
       >
-        <AuthProvider>
-          <AuthGuard>
-            <AuthenticatedLayout>
-             
-              {children}
-            </AuthenticatedLayout>
-            <Toaster position="top-right" richColors />
-          </AuthGuard>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <AuthGuard>
+              <AuthenticatedLayout>
+                <Toaster position="top-right" />
+                {children}
+              </AuthenticatedLayout>
+            </AuthGuard>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

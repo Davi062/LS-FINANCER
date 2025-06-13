@@ -26,12 +26,12 @@ import {
 
 // Mock data for the chart
 const monthlyData = [
-  { name: 'Jan', income: 4000, expenses: 2400 },
-  { name: 'Fev', income: 3000, expenses: 1398 },
-  { name: 'Mar', income: 2000, expenses: 9800 },
-  { name: 'Abr', income: 2780, expenses: 3908 },
-  { name: 'Mai', income: 1890, expenses: 4800 },
-  { name: 'Jun', income: 2390, expenses: 3800 },
+  { name: 'Jan', income: 7000, expenses: 2400 },
+  { name: 'Fev', income: 8000, expenses: 1398 },
+  { name: 'Mar', income: 10000, expenses: 9800 },
+  { name: 'Abr', income: 5780, expenses: 3908 },
+  { name: 'Mai', income: 10890, expenses: 4800 },
+  { name: 'Jun', income: 5390, expenses: 3800 },
 ];
 
 // Types
@@ -143,7 +143,7 @@ export default function AdminPage() {
             <span className="h-4 w-4 text-muted-foreground">💰</span>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">R$ {totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+            <div className="text-2xl font-bold text-green-600">R$ {totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
             <p className="text-xs text-muted-foreground">+20.1% em relação ao mês passado</p>
           </CardContent>
         </Card>
@@ -153,7 +153,7 @@ export default function AdminPage() {
             <span className="h-4 w-4 text-muted-foreground">💸</span>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">R$ {totalExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+            <div className="text-2xl font-bold text-red-600">R$ {totalExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
             <p className="text-xs text-muted-foreground">+5.3% em relação ao mês passado</p>
           </CardContent>
         </Card>

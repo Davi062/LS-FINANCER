@@ -29,6 +29,9 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar"
+import { NavSecondary } from "./nav-secondary"
+import { Item } from "@radix-ui/react-dropdown-menu"
+import { title } from "process"
 
 // This is sample data.
 const data = {
@@ -40,7 +43,7 @@ const data = {
   teams: [
     {
       name: "Link Finanças",
-      logo: GalleryVerticalEnd,
+      logo: GalleryVerticalEnd, 
       plan: "Enterprise",
     },
   ],
@@ -49,49 +52,21 @@ const data = {
       title: "Dashboard",
       url: "/admin",
       icon: LayoutDashboard,
-      items: [
-        {
-          title: "VisãoGeral",
-          url: "/admin",
-          icon: PieChart,
-        },
-      ],
     },
     {
       title: "Projetos",
       url: "/admin/projetos",
       icon: ScrollText,
-      items: [
-        {
-          title: "Detalhes",
-          url: "/admin/projetos",
-          icon: ScrollText,
-        },
-      ],
     },
     {
       title: "Usuários",
       url: "/admin/users",
       icon: User,
-      items: [
-        {
-          title: "Gerenciar",
-          url: "/admin/users",
-          icon: User,
-        },
-      ],
     },
     {
      title: "Configurações",
      url: "/admin/settings",
      icon: Settings2,
-     items: [
-       {
-         title: "Preferências",
-         url: "/admin/settings",
-         icon: Settings2,
-       },
-     ],
     }
   ],
 }
@@ -103,7 +78,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.items} />
+        <NavSecondary items={data.items} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />
