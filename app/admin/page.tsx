@@ -132,7 +132,7 @@ export default function AdminPage() {
 
   return (
 
-    <div className="lg:w-full w-full ">
+    <div className="lg:w-full w-full">
       <h1 className="text-3xl font-bold mb-4">Dashboard</h1>
       
       {/* Income/Expense Cards */}
@@ -149,7 +149,7 @@ export default function AdminPage() {
         </Card>
         <Card className="shadow-lg hover:shadow-xl transition-colors duration-7000 ">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Gastos Totais</CardTitle>
+            <CardTitle className="text-sm font-medium">Investimentos Totais</CardTitle>
             <span className="h-4 w-4 text-muted-foreground">💸</span>
           </CardHeader>
           <CardContent>

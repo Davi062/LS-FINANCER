@@ -286,7 +286,7 @@ export default function ProjetosPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2">
         {filteredProjects.map((project) => (
           <Card key={project.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={(e) => openProjectDetails(project, e)}>
             <CardHeader className="pb-3">
@@ -535,6 +535,156 @@ export default function ProjetosPage() {
           
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+               {/* Dados do Projeto */}
+              <div className="space-y-6">
+                <h3 className="text-lg font-medium">Dados do Projeto</h3>
+                <div className="space-y-3">
+                  <Label htmlFor="projectTitle">Título do Projeto</Label>
+                  <Input
+                    id="projectTitle"
+                    value={newProject.title}
+                    onChange={(e) => setNewProject(prev => ({
+                      ...prev,
+                      title: e.target.value
+                    }))}
+                    placeholder="Ex: Site Institucional"
+                    className="w-full"
+                    required
+                  />
+                </div>
+                <div className="space-y-3">
+                  <Label htmlFor="projectDescription">Descrição</Label>
+                  <Textarea
+                    id="projectDescription"
+                    value={newProject.description}
+                    onChange={(e) => setNewProject(prev => ({
+                      ...prev,
+                      description: e.target.value
+                    }))}
+                    placeholder="Descreva o projeto detalhadamente"
+                    rows={3}
+                    className="w-full"
+                    required
+                  />
+                </div>
+
+          {/* Campo de Status ainda em grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="space-y-2">
+                 <Label htmlFor="projectStatus">Status</Label>
+                 <Select 
+             value={newProject.status}
+             onValueChange={(value) => setNewProject(prev => ({
+               ...prev,
+               status: value as ProjectStatus
+             }))}
+           >
+      <SelectTrigger>
+        <SelectValue placeholder="Selecione o status" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="Orçamento">Orçamento</SelectItem>
+        <SelectItem value="Em andamento">Em andamento</SelectItem>
+        <SelectItem value="Concluído">Concluído</SelectItem>
+        <SelectItem value="Atrasado">Atrasado</SelectItem>
+        <SelectItem value="Pendente">Pendente</SelectItem>
+      </SelectContent>
+    </Select>
+  </div>
+          </div>
+ 
+          {/* Campos de datas empilhados */}
+          <div className="space-y-6">
+  <div id="data-i" className="space-y-2">
+    <Label>Data de Início</Label>
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className={cn(
+            "w-full justify-start text-left font-normal truncate",
+            !newProject.startDate && "text-muted-foreground"
+          )}
+        >
+          <CalendarIcon className="mr-2 h-4 w-4" />
+          {newProject.startDate ? (
+            newProject.startDate.toLocaleDateString('pt-BR')
+          ) : (
+            <span>Selecione uma data de início</span>
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0">
+        <CalendarComponent
+          mode="single"
+          selected={newProject.startDate}
+          onSelect={(date) => date && setNewProject(prev => ({
+            ...prev,
+            startDate: date
+          }))}
+          initialFocus
+          locale={ptBR}
+        />
+      </PopoverContent>
+    </Popover>
+  </div>
+
+  <div id="data-f" className="space-y-2">
+    <Label>Data de Término</Label>
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className={cn(
+            "w-full justify-start text-left font-normal truncate",
+            !newProject.endDate && "text-muted-foreground"
+          )}
+        >
+          <CalendarIcon className="mr-2 h-4 w-4" />
+          {newProject.endDate ? (
+            newProject.endDate.toLocaleDateString('pt-BR')
+          ) : (
+            <span>Selecione uma data de término</span>
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0">
+        <CalendarComponent
+          mode="single"
+          selected={newProject.endDate}
+          onSelect={(date) => setNewProject(prev => ({
+            ...prev,
+            endDate: date || undefined
+          }))}
+          initialFocus
+          locale={ptBR}
+        />
+      </PopoverContent>
+    </Popover>
+  </div>
+          </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="projectBudget">Orçamento Total (R$)</Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="projectBudget"
+                      type="number"
+                      step="0.01"
+                      value={newProject.budget}
+                      onChange={(e) => setNewProject(prev => ({
+                        ...prev,
+                        budget: e.target.value
+                      }))}
+                      className="pl-9"
+                      placeholder="0,00"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* Dados do Cliente */}
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Dados do Cliente</h3>
@@ -582,147 +732,6 @@ export default function ProjetosPage() {
                 </div>
               </div>
 
-              {/* Dados do Projeto */}
-              <div className="space-y-6">
-                <h3 className="text-lg font-medium">Dados do Projeto</h3>
-                <div className="space-y-3">
-                  <Label htmlFor="projectTitle">Título do Projeto</Label>
-                  <Input
-                    id="projectTitle"
-                    value={newProject.title}
-                    onChange={(e) => setNewProject(prev => ({
-                      ...prev,
-                      title: e.target.value
-                    }))}
-                    placeholder="Ex: Site Institucional"
-                    className="w-full"
-                    required
-                  />
-                </div>
-                <div className="space-y-3">
-                  <Label htmlFor="projectDescription">Descrição</Label>
-                  <Textarea
-                    id="projectDescription"
-                    value={newProject.description}
-                    onChange={(e) => setNewProject(prev => ({
-                      ...prev,
-                      description: e.target.value
-                    }))}
-                    placeholder="Descreva o projeto detalhadamente"
-                    rows={3}
-                    className="w-full"
-                    required
-                  />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="projectStatus">Status</Label>
-                    <Select 
-                      value={newProject.status}
-                      onValueChange={(value) => setNewProject(prev => ({
-                        ...prev,
-                        status: value as ProjectStatus
-                      }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Orçamento">Orçamento</SelectItem>
-                        <SelectItem value="Em andamento">Em andamento</SelectItem>
-                        <SelectItem value="Concluído">Concluído</SelectItem>
-                        <SelectItem value="Atrasado">Atrasado</SelectItem>
-                        <SelectItem value="Pendente">Pendente</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Data de Início</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !newProject.startDate && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {newProject.startDate ? (
-                            newProject.startDate.toLocaleDateString('pt-BR')
-                          ) : (
-                            <span>Selecione uma data</span>
-                          )}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <CalendarComponent
-                          mode="single"
-                          selected={newProject.startDate}
-                          onSelect={(date) => date && setNewProject(prev => ({
-                            ...prev,
-                            startDate: date
-                          }))}
-                          initialFocus
-                          locale={ptBR}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Data de Término</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !newProject.endDate && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {newProject.endDate ? (
-                            newProject.endDate.toLocaleDateString('pt-BR')
-                          ) : (
-                            <span>Selecione uma data</span>
-                          )}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <CalendarComponent
-                          mode="single"
-                          selected={newProject.endDate}
-                          onSelect={(date) => setNewProject(prev => ({
-                            ...prev,
-                            endDate: date || undefined
-                          }))}
-                          initialFocus
-                          locale={ptBR}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="projectBudget">Orçamento Total (R$)</Label>
-                  <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      id="projectBudget"
-                      type="number"
-                      step="0.01"
-                      value={newProject.budget}
-                      onChange={(e) => setNewProject(prev => ({
-                        ...prev,
-                        budget: e.target.value
-                      }))}
-                      className="pl-9"
-                      placeholder="0,00"
-                      required
-                    />
-                  </div>
-                </div>
-              </div>
             </div>
 
             {/* Itens do Projeto */}
@@ -735,7 +744,7 @@ export default function ProjetosPage() {
                   size="sm"
                   onClick={handleAddItem}
                 >
-                  <Plus className="mr-2 h-4 w-4" />
+                  <Plus className="mr-1 h-4 w-4" />
                   Adicionar Item
                 </Button>
               </div>
