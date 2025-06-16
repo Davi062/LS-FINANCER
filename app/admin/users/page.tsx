@@ -6,6 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Search, 
   Plus, 
@@ -13,7 +16,13 @@ import {
   UserRoundCog, 
   MoreHorizontal,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  X,
+  Phone,
+  Mail,
+  User,
+  Building2,
+  Briefcase
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -121,9 +130,65 @@ function TeamMemberRow({ member }: { member: typeof teamMembers[0] }) {
   );
 }
 
+// Form types
+type ClientFormData = {
+  name: string;
+  email: string;
+  phone: string;
+  company?: string;
+};
+
+type TeamMemberFormData = {
+  name: string;
+  email: string;
+  role: string;
+};
+
 export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("clients");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  
+  // Form states
+  const [clientForm, setClientForm] = useState<ClientFormData>({
+    name: "",
+    email: "",
+    phone: "",
+    company: ""
+  });
+  
+  const [teamMemberForm, setTeamMemberForm] = useState<TeamMemberFormData>({
+    name: "",
+    email: "",
+    role: ""
+  });
+  
+  // Dialog handlers
+  const openAddDialog = () => {
+    setIsDialogOpen(true);
+  };
+  
+  const closeDialog = () => {
+    setIsDialogOpen(false);
+  };
+  
+  const handleClientSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Here you would typically send the data to your API
+    console.log("New client:", clientForm);
+    // Reset form and close dialog
+    setClientForm({ name: "", email: "", phone: "", company: "" });
+    setIsDialogOpen(false);
+  };
+  
+  const handleTeamMemberSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Here you would typically send the data to your API
+    console.log("New team member:", teamMemberForm);
+    // Reset form and close dialog
+    setTeamMemberForm({ name: "", email: "", role: "" });
+    setIsDialogOpen(false);
+  };
 
   // Filter clients based on search
   const filteredClients = clients.filter(client => 
@@ -148,7 +213,7 @@ export default function UsersPage() {
             Gerencie seus clientes e equipe em um só lugar
           </p>
         </div>
-        <Button>
+        <Button onClick={openAddDialog}>
           <Plus className="h-4 w-4 mr-2" />
           {activeTab === "clients" ? "Novo Cliente" : "Adicionar Membro"}
         </Button>
@@ -231,6 +296,171 @@ export default function UsersPage() {
           </Card>
         </TabsContent>
       </Tabs>
+      
+      {/* Add Client/Team Member Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          {activeTab === "clients" ? (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Novo Cliente
+                </DialogTitle>
+                <DialogDescription>
+                  Adicione um novo cliente ao sistema
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleClientSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Nome Completo</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="name"
+                      placeholder="Nome do cliente"
+                      className="pl-9"
+                      value={clientForm.name}
+                      onChange={(e) => setClientForm({...clientForm, name: e.target.value})}
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="email">E-mail</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="email@exemplo.com"
+                      className="pl-9"
+                      value={clientForm.email}
+                      onChange={(e) => setClientForm({...clientForm, email: e.target.value})}
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Telefone</Label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="phone"
+                      type="tel"
+                      placeholder="(00) 00000-0000"
+                      className="pl-9"
+                      value={clientForm.phone}
+                      onChange={(e) => setClientForm({...clientForm, phone: e.target.value})}
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="company">Empresa (Opcional)</Label>
+                  <div className="relative">
+                    <Building2 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="company"
+                      placeholder="Nome da empresa"
+                      className="pl-9"
+                      value={clientForm.company || ""}
+                      onChange={(e) => setClientForm({...clientForm, company: e.target.value})}
+                    />
+                  </div>
+                </div>
+                
+                <DialogFooter className="mt-6">
+                  <Button type="button" variant="outline" onClick={closeDialog}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Adicionar Cliente
+                  </Button>
+                </DialogFooter>
+              </form>
+            </>
+          ) : (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <UserRoundCog className="h-5 w-5" />
+                  Adicionar Membro à Equipe
+                </DialogTitle>
+                <DialogDescription>
+                  Adicione um novo membro à sua equipe
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleTeamMemberSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="member-name">Nome Completo</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="member-name"
+                      placeholder="Nome do membro"
+                      className="pl-9"
+                      value={teamMemberForm.name}
+                      onChange={(e) => setTeamMemberForm({...teamMemberForm, name: e.target.value})}
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="member-email">E-mail</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="member-email"
+                      type="email"
+                      placeholder="email@empresa.com"
+                      className="pl-9"
+                      value={teamMemberForm.email}
+                      onChange={(e) => setTeamMemberForm({...teamMemberForm, email: e.target.value})}
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="role">Cargo</Label>
+                  <Select
+                    value={teamMemberForm.role}
+                    onValueChange={(value) => setTeamMemberForm({...teamMemberForm, role: value})}
+                  >
+                    <SelectTrigger className="w-full">
+                      <Briefcase className="h-4 w-4 text-muted-foreground mr-2" />
+                      <SelectValue placeholder="Selecione o cargo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Desenvolvedor">Desenvolvedor</SelectItem>
+                      <SelectItem value="Designer">Designer</SelectItem>
+                      <SelectItem value="Gerente">Gerente</SelectItem>
+                      <SelectItem value="Analista">Analista</SelectItem>
+                      <SelectItem value="Outro">Outro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <DialogFooter className="mt-6">
+                  <Button type="button" variant="outline" onClick={closeDialog}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Adicionar Membro
+                  </Button>
+                </DialogFooter>
+              </form>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

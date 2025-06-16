@@ -159,10 +159,16 @@ const formatCurrency = (value: number) => {
 
 
 export default function ProjetosPage() {
+  const [projectsState, setProjectsState] = useState<Project[]>(projects);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isNewProjectDialogOpen, setIsNewProjectDialogOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<string>('');
+  const [isEditingNotes, setIsEditingNotes] = useState(false);
+  const [editedNotes, setEditedNotes] = useState('');
+  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
+  const [isEditingProgress, setIsEditingProgress] = useState(false);
+  const [editedProgress, setEditedProgress] = useState(0);
   
   // Estado para o formulário de novo projeto
   const [newProject, setNewProject] = useState<{
@@ -255,11 +261,81 @@ export default function ProjetosPage() {
   };
 
   // Get unique client names
-  const clientNames = Array.from(new Set(projects.map(project => project.client.name)));
+  const clientNames = Array.from(new Set(projectsState.map(project => project.client.name)));
 
+  // Filter projects based on selected client
   const filteredProjects = selectedClient 
-    ? projects.filter(project => project.client.name === selectedClient)
-    : projects;
+    ? projectsState.filter(project => project.client.name === selectedClient)
+    : projectsState;
+
+  const handleClientSelect = (clientName: string) => {
+    setSelectedClient(clientName === selectedClient ? '' : clientName);
+  };
+
+  const updateProjectNotes = (projectId: number, notes: string) => {
+    setProjectsState(prevProjects => 
+      prevProjects.map(project => 
+        project.id === projectId 
+          ? { ...project, notes }
+          : project
+      )
+    );
+    
+    if (selectedProject && selectedProject.id === projectId) {
+      setSelectedProject(prev => prev ? { ...prev, notes } : null);
+    }
+  };
+
+  const updateProjectStatus = (projectId: number, status: ProjectStatus) => {
+    setProjectsState(prevProjects => 
+      prevProjects.map(project => 
+        project.id === projectId 
+          ? { ...project, status }
+          : project
+      )
+    );
+    
+    if (selectedProject && selectedProject.id === projectId) {
+      setSelectedProject(prev => prev ? { ...prev, status } : null);
+    }
+  };
+
+  const handleProgressClick = () => {
+    if (selectedProject) {
+      setEditedProgress(selectedProject.progress);
+      setIsEditingProgress(true);
+    }
+  };
+
+  const handleProgressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = parseInt(e.target.value, 10) || 0;
+    value = Math.min(100, Math.max(0, value)); // Ensure value is between 0-100
+    setEditedProgress(value);
+  };
+
+  const saveProgress = () => {
+    if (selectedProject) {
+      const projectId = selectedProject.id;
+      setProjectsState(prevProjects => 
+        prevProjects.map(project => 
+          project.id === projectId 
+            ? { ...project, progress: editedProgress }
+            : project
+        )
+      );
+      
+      setSelectedProject(prev => prev ? { ...prev, progress: editedProgress } : null);
+      setIsEditingProgress(false);
+    }
+  };
+
+  const handleProgressKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      saveProgress();
+    } else if (e.key === 'Escape') {
+      setIsEditingProgress(false);
+    }
+  };
 
   const openProjectDetails = (project: Project, e?: React.MouseEvent) => {
     e?.stopPropagation();
@@ -449,16 +525,45 @@ export default function ProjetosPage() {
 
                         <div>
                           <h3 className="text-sm font-medium text-muted-foreground">Status</h3>
-                          <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mt-1" style={{
-                            backgroundColor: selectedProject.status === 'Em andamento' ? 'rgba(59, 130, 246, 0.1)' :
-                                            selectedProject.status === 'Concluído' ? 'rgba(16, 185, 129, 0.1)' :
-                                            selectedProject.status === 'Atrasado' ? 'rgba(239, 68, 68, 0.1)' :
-                                            'rgba(156, 163, 175, 0.1)',
-                            color: selectedProject.status === 'Em andamento' ? 'rgb(37, 99, 235)' :
-                                   selectedProject.status === 'Concluído' ? 'rgb(5, 150, 105)' :
-                                   selectedProject.status === 'Atrasado' ? 'rgb(220, 38, 38)' : 'rgb(75, 85, 99)'
-                          }}>
-                            {selectedProject.status}
+                          <div className="relative mt-1">
+                            <div 
+                              className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium cursor-pointer hover:opacity-80 transition-opacity"
+                              style={{
+                                backgroundColor: selectedProject.status === 'Em andamento' ? 'rgba(59, 130, 246, 0.1)' :
+                                                selectedProject.status === 'Concluído' ? 'rgba(16, 185, 129, 0.1)' :
+                                                selectedProject.status === 'Atrasado' ? 'rgba(239, 68, 68, 0.1)' :
+                                                'rgba(156, 163, 175, 0.1)',
+                                color: selectedProject.status === 'Em andamento' ? 'rgb(37, 99, 235)' :
+                                       selectedProject.status === 'Concluído' ? 'rgb(5, 150, 105)' :
+                                       selectedProject.status === 'Atrasado' ? 'rgb(220, 38, 38)' : 'rgb(75, 85, 99)'
+                              }}
+                              onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
+                            >
+                              {selectedProject.status}
+                              <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </div>
+                            
+                            {isStatusDropdownOpen && (
+                              <div className="absolute z-10 mt-1 w-40 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+                                <div className="py-1">
+                                  {['Orçamento', 'Em andamento', 'Concluído', 'Atrasado', 'Pendente'].map((status) => (
+                                    <div
+                                      key={status}
+                                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        updateProjectStatus(selectedProject.id, status as ProjectStatus);
+                                        setIsStatusDropdownOpen(false);
+                                      }}
+                                    >
+                                      {status}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -470,11 +575,39 @@ export default function ProjetosPage() {
                         </div>
 
                         <div>
-                          <div className="flex justify-between text-sm mb-1">
+                          <div className="flex justify-between items-center text-sm mb-1">
                             <span className="text-muted-foreground">Progresso</span>
-                            <span>{selectedProject.progress}%</span>
+                            {isEditingProgress ? (
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="number"
+                                  value={editedProgress}
+                                  onChange={handleProgressChange}
+                                  onKeyDown={handleProgressKeyDown}
+                                  onBlur={saveProgress}
+                                  className="w-16 px-2 py-1 text-right border rounded text-sm"
+                                  min="0"
+                                  max="100"
+                                  autoFocus
+                                />
+                                <span>%</span>
+                              </div>
+                            ) : (
+                              <button 
+                                className="text-sm font-medium hover:bg-muted/30 px-2 py-1 rounded transition-colors"
+                                onClick={handleProgressClick}
+                              >
+                                {selectedProject.progress}%
+                              </button>
+                            )}
                           </div>
-                          <Progress value={selectedProject.progress} className="h-2" />
+                          <div className="relative">
+                            <Progress value={selectedProject.progress} className="h-2" />
+                            <div 
+                              className="absolute inset-0 cursor-pointer"
+                              onClick={handleProgressClick}
+                            />
+                          </div>
                         </div>
 
                         {selectedProject.items && selectedProject.items.length > 0 && (
@@ -498,16 +631,85 @@ export default function ProjetosPage() {
                       </div>
                     </div>
 
-                    {selectedProject.notes && (
-                      <div className="pt-4 border-t">
-                        <h3 className="text-sm font-medium text-muted-foreground mb-2">Observações</h3>
-                        <div className="p-4 bg-muted/20 rounded-lg">
-                          <p className="text-foreground whitespace-pre-line">
-                            {selectedProject.notes}
-                          </p>
-                        </div>
+                    <div className="pt-4 border-t">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-sm font-medium text-muted-foreground">Observações</h3>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="text-muted-foreground hover:text-foreground h-8 px-2"
+                          onClick={() => {
+                            if (!selectedProject) return;
+                            if (!isEditingNotes) {
+                              setEditedNotes(selectedProject.notes || '');
+                            }
+                            setIsEditingNotes(!isEditingNotes);
+                          }}
+                        >
+                          {isEditingNotes ? 'Cancelar' : 'Editar'}
+                        </Button>
                       </div>
-                    )}
+                      
+                      {isEditingNotes ? (
+                        <div className="space-y-2">
+                          <Textarea
+                            value={editedNotes}
+                            onChange={(e) => setEditedNotes(e.target.value)}
+                            placeholder="Adicione observações sobre o projeto"
+                            rows={3}
+                            className="min-h-[100px]"
+                          />
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setIsEditingNotes(false);
+                              }}
+                            >
+                              Cancelar
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              onClick={() => {
+                                if (!selectedProject) return;
+                                updateProjectNotes(selectedProject.id, editedNotes);
+                                setIsEditingNotes(false);
+                                
+                                // Here you would typically save the notes to your backend
+                                // Example:
+                                // await updateProjectInDatabase(selectedProject.id, { notes: editedNotes });
+                              }}
+                            >
+                              Salvar
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div 
+                          className={`p-4 bg-muted/20 rounded-lg ${!selectedProject.notes ? 'cursor-pointer hover:bg-muted/30' : ''}`}
+                          onClick={() => {
+                            if (!selectedProject.notes) {
+                              setEditedNotes('');
+                              setIsEditingNotes(true);
+                            }
+                          }}
+                        >
+                          {selectedProject.notes ? (
+                            <p className="text-foreground whitespace-pre-line">
+                              {selectedProject.notes}
+                            </p>
+                          ) : (
+                            <p className="text-muted-foreground italic">
+                              Clique para adicionar observações
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               </div>
@@ -807,6 +1009,7 @@ export default function ProjetosPage() {
 
             {/* Observações */}
             <div className="space-y-2">
+              
               <Label htmlFor="projectNotes">Observações</Label>
               <Textarea
                 id="projectNotes"
