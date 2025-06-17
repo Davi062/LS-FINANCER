@@ -442,7 +442,6 @@ export default function UsersPage() {
                       <SelectItem value="Designer">Designer</SelectItem>
                       <SelectItem value="Gerente">Gerente</SelectItem>
                       <SelectItem value="Analista">Analista</SelectItem>
-                      <SelectItem value="Outro">Outro</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
