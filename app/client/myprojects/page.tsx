@@ -44,8 +44,8 @@ export default function MyProjectsPage() {
       estimatedEndDate: '30/07/2024',
       lastUpdate: '25/05/2024',
       owner: {
-        name: 'João Silva',
-        email: 'joao@empresa.com',
+        name: 'LinkSystem',
+        email: 'LinkSystem@empresa.com',
         phone: '(11) 98765-4321',
         avatar: '/avatars/joao.jpg'
       }
@@ -62,8 +62,8 @@ export default function MyProjectsPage() {
       estimatedEndDate: '01/12/2024',
       lastUpdate: '28/05/2024',
       owner: {
-        name: 'João Silva',
-        email: 'joao@empresa.com',
+        name: 'LinkSystem',
+        email: 'LinkSystem@empresa.com',
         phone: '(11) 98765-4321',
         avatar: '/avatars/joao.jpg'
       }
@@ -168,7 +168,7 @@ export default function MyProjectsPage() {
                 <Separator className="my-6" />
 
                 <div>
-                  <h3 className="font-medium mb-3">Contato do Desenvolvedor</h3>
+                  <h3 className="font-medium mb-3">Contato da empresa</h3>
                   <div className="flex items-center space-x-4">
                     <Avatar>
                       <AvatarImage src={project.owner.avatar} alt={project.owner.name} />
@@ -196,9 +196,6 @@ export default function MyProjectsPage() {
                     <Button variant="outline" size="sm">
                       <FileText className="h-4 w-4 mr-2" />
                       Ver Contrato
-                    </Button>
-                    <Button size="sm">
-                      Falar no WhatsApp
                     </Button>
                   </div>
                 </div>
