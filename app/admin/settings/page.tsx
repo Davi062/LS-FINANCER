@@ -19,10 +19,7 @@ import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { useTheme } from "@/contexts/theme-context";
 
-type Language = "pt-BR" | "en-US" | "es-ES";
-
 export interface AppSettings {
-  language: Language;
   fontSize: number;
   compactMode: boolean;
   emailNotifications: boolean;
@@ -39,7 +36,6 @@ export interface AppSettings {
 
 // Default settings
 const DEFAULT_SETTINGS: AppSettings = {
-  language: "pt-BR",
   fontSize: 14,
   compactMode: false,
   emailNotifications: true,
@@ -271,20 +267,6 @@ export default function SettingsPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="language">Idioma</Label>
-                <Select
-                  value={settings.language}
-                  onValueChange={(value: Language) => updateSetting("language", value)}
-                >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Selecione o idioma" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pt-BR">Português (Brasil)</SelectItem>
-                    <SelectItem value="en-US">English (US)</SelectItem>
-                    <SelectItem value="es-ES">Español</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
 
               <div className="space-y-2">
@@ -512,25 +494,6 @@ export default function SettingsPage() {
                     onCheckedChange={(checked) => updateSetting('autoSave', checked)}
                   />
                 </div>
-
-                <Separator />
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="developerMode">Modo Desenvolvedor</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Ativar ferramentas de desenvolvedor
-                    </p>
-                  </div>
-                  <Switch
-                    id="developerMode"
-                    checked={settings.developerMode}
-                    onCheckedChange={(checked) => updateSetting('developerMode', checked)}
-                  />
-                </div>
-
-                <Separator />
-
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="analytics">Análise de Uso</Label>
