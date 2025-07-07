@@ -14,10 +14,7 @@ import {
   Plus, 
   Users, 
   UserRoundCog, 
-  MoreHorizontal,
-  ChevronDown,
-  ChevronRight,
-  X,
+  IdCard,
   Phone,
   Mail,
   User,
@@ -26,6 +23,8 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+
+import {API} from "@/service/api"
 
 // Mock data
 const clients = [
@@ -134,8 +133,9 @@ function TeamMemberRow({ member }: { member: typeof teamMembers[0] }) {
 type ClientFormData = {
   name: string;
   email: string;
-  phone: string;
-  company?: string;
+  document: string;
+  phone_number: string;
+  company_name: string;
 };
 
 type TeamMemberFormData = {
@@ -153,8 +153,9 @@ export default function UsersPage() {
   const [clientForm, setClientForm] = useState<ClientFormData>({
     name: "",
     email: "",
-    phone: "",
-    company: ""
+    document: "",
+    phone_number: "",
+    company_name: ""
   });
   
   const [teamMemberForm, setTeamMemberForm] = useState<TeamMemberFormData>({
@@ -172,13 +173,39 @@ export default function UsersPage() {
     setIsDialogOpen(false);
   };
   
-  const handleClientSubmit = (e: React.FormEvent) => {
+  const handleClientSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically send the data to your API
-    console.log("New client:", clientForm);
-    // Reset form and close dialog
-    setClientForm({ name: "", email: "", phone: "", company: "" });
-    setIsDialogOpen(false);
+
+    try { 
+      console.log('Enviando dados:', clientForm);
+
+      const response = await API.post("/users", clientForm, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      console.log('Resposta do servidor:', response.data);
+      
+      // Reset form and close dialog on success
+      setClientForm({ name: "", email: "", document: "", phone_number: "", company_name: "" });
+      setIsDialogOpen(false);
+      
+    } catch (error: any) {
+      console.error('Erro ao criar usuário:', error);
+      if (error.response) {
+        // A requisição foi feita e o servidor respondeu com um status fora do 2xx
+        console.error('Resposta do servidor:', error.response.data);
+        console.error('Status:', error.response.status);
+        console.error('Headers:', error.response.headers);
+      } else if (error.request) {
+        // A requisição foi feita mas não houve resposta
+        console.error('Sem resposta do servidor:', error.request);
+      } else {
+        // Algum erro ocorreu ao montar a requisição
+        console.error('Erro ao configurar a requisição:', error.message);
+      }
+    }
   };
   
   const handleTeamMemberSubmit = (e: React.FormEvent) => {
@@ -342,6 +369,23 @@ export default function UsersPage() {
                     />
                   </div>
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="document">CPF</Label>
+                  <div className="relative">
+                    <IdCard className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="document"
+                      type="text"
+                      maxLength={11}
+                      placeholder="000.000.000-00"
+                      className="pl-9"
+                      value={clientForm.document}
+                      onChange={(e) => setClientForm({...clientForm, document: e.target.value})}
+                      required
+                    />
+                  </div>
+                </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="phone">Telefone</Label>
@@ -352,8 +396,8 @@ export default function UsersPage() {
                       type="tel"
                       placeholder="(00) 00000-0000"
                       className="pl-9"
-                      value={clientForm.phone}
-                      onChange={(e) => setClientForm({...clientForm, phone: e.target.value})}
+                      value={clientForm.phone_number}
+                      onChange={(e) => setClientForm({...clientForm, phone_number: e.target.value})}
                       required
                     />
                   </div>
@@ -367,8 +411,8 @@ export default function UsersPage() {
                       id="company"
                       placeholder="Nome da empresa"
                       className="pl-9"
-                      value={clientForm.company || ""}
-                      onChange={(e) => setClientForm({...clientForm, company: e.target.value})}
+                      value={clientForm.company_name || ""}
+                      onChange={(e) => setClientForm({...clientForm, company_name: e.target.value})}
                     />
                   </div>
                 </div>
