@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -26,28 +26,13 @@ import { ptBR } from "date-fns/locale";
 
 import {API} from "@/service/api"
 
+interface ClientsType {
+  id: number,
+  name: string,
+  email: string,
+  phone_number: string
+}
 // Mock data
-const clients = [
-  {
-    id: "1",
-    name: "João Silva",
-    email: "joao@example.com",
-    phone: "(11) 98765-4321",
-    status: "Ativo",
-    projects: 3,
-    lastAccess: "2025-06-01T14:30:00Z"
-  },
-  {
-    id: "2",
-    name: "Maria Santos",
-    email: "maria@example.com",
-    phone: "(11) 98765-1234",
-    status: "Inativo",
-    projects: 1,
-    lastAccess: "2025-05-15T10:15:00Z"
-  },
-];
-
 const teamMembers = [
   {
     id: "1",
@@ -68,7 +53,8 @@ const teamMembers = [
 ];
 
 // Client row component
-function ClientRow({ client }: { client: typeof clients[0] }) {
+function ClientRow({ client }: { client: ClientsType} ) {
+
   return (
     <div className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
       <div className="flex justify-between items-start">
@@ -76,31 +62,20 @@ function ClientRow({ client }: { client: typeof clients[0] }) {
           <h3 className="font-medium">{client.name}</h3>
           <p className="text-sm text-muted-foreground">{client.email}</p>
         </div>
-        <Badge
-          variant={client.status === "Ativo" ? "default" : "secondary"}
-          className={client.status === "Ativo" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}
-        >
-          {client.status}
-        </Badge>
+        
       </div>
       <div className="mt-2 grid grid-cols-2 gap-4 text-sm">
         <div>
           <p className="text-muted-foreground">Telefone</p>
-          <p>{client.phone}</p>
+          <p>{client.phone_number}</p>
         </div>
         <div>
-          <p className="text-muted-foreground">Projetos</p>
-          <p>{client.projects}</p>
         </div>
-        <div>
-          <p className="text-muted-foreground">Último Acesso</p>
-          <p>{format(new Date(client.lastAccess), "dd/MM/yyyy 'às' HH:mm")}</p>
-        </div>
+       
       </div>
     </div>
   );
 }
-
 // Team member row component
 function TeamMemberRow({ member }: { member: typeof teamMembers[0] }) {
   return (
@@ -148,6 +123,8 @@ export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("clients");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const [clients, setClients] = useState<ClientsType[]>([])
   
   // Form states
   const [clientForm, setClientForm] = useState<ClientFormData>({
@@ -221,7 +198,7 @@ export default function UsersPage() {
   const filteredClients = clients.filter(client => 
     client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.phone.includes(searchTerm)
+    client.phone_number.includes(searchTerm)
   );
 
   // Filter team members based on search
@@ -230,6 +207,23 @@ export default function UsersPage() {
     member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     member.role.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  useEffect(() => {
+    const searchClients = async () => {
+      try {
+
+        const resp = await API.get<ClientsType[]>("/users")
+        console.log(resp.data);
+
+        setClients(resp.data)
+
+      } catch (error) {
+        console.error("Erro ao buscar usuários:", error)
+      }
+    }
+
+    searchClients()
+  }, [])
 
   return (
     <div className="p-6 space-y-6 w-full">
