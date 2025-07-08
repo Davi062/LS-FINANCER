@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { useEffect } from 'react';
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { user, isLoading } = useAuth();
+  const { user, } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -23,10 +23,10 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
       const redirectPath = user.role === 'admin' ? '/admin' : '/client';
       router.push(redirectPath);
     }
-  }, [user, isLoading, pathname, router]);
+  }, [user, pathname, router]);
 
   // Mostra um loading enquanto verifica a autenticação
-  if (isLoading || (!user && pathname !== '/login')) {
+  if ((!user && pathname !== '/login')) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>

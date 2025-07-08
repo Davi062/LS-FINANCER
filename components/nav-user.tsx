@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/sidebar"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
+import { useAuth } from '@/contexts/auth-context'
 
 export function NavUser({
   user,
@@ -43,16 +44,15 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar()
   const router = useRouter()
+ const { signOut } = useAuth()
 
   const handleLogout = () => {
     // Clear all items from local storage
     if (typeof window !== 'undefined') {
       localStorage.clear()
-    }
-    // Redirect to login page
+      signOut()    }
     router.push('/login')
-    // Force a full page reload to ensure all states are reset
-    window.location.reload()
+    
   }
 
   return (
