@@ -3,10 +3,11 @@ import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "sonner";
-import { AuthProvider } from "@/contexts/auth-context";
-import { AuthGuard } from "@/components/auth-guard";
-import { AuthenticatedLayout } from "@/components/authenticated-layout";
 import { ThemeProvider } from "@/contexts/theme-context";
+import { AuthProvider } from "@/contexts/auth-context";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
+import { AuthenticatedLayout } from "@/components/authenticated-layout";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -42,16 +43,14 @@ export default function RootLayout({
           geistMono.variable
         )}
       >
-        <ThemeProvider>
-          <AuthProvider>
-            <AuthGuard>
-              <AuthenticatedLayout>
-                <Toaster position="top-right" />
-                {children}
-              </AuthenticatedLayout>
-            </AuthGuard>
-          </AuthProvider>
-        </ThemeProvider>
+        <AuthProvider>
+          <ThemeProvider>
+            <AuthenticatedLayout>
+              <Toaster position="top-right" />
+              {children}
+            </AuthenticatedLayout>
+          </ThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   );

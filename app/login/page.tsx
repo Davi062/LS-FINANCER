@@ -5,75 +5,40 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
 
 export default function Page() {
   const [flipped, setFlipped] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState(false);
   const [touched, setTouched] = useState(false);
-
-  const router = useRouter();
-  const { login } = useAuth();
-
-  function handleClick(e: React.FormEvent) {
+  const { signIn } = useAuth()
+  
+ async function handleClick(e: React.FormEvent) {
     e.preventDefault();
-    if (flipped || isLoading) return;
 
     // Só marca campos como tocados se estiverem vazios
-    if (!email || !senha) {
+    if (!email || !password) {
       setTouched(true);
       return;
     }
 
+    try {
+    await signIn({ email, password})
+    } catch (error: any) { 
+      console.log(error)
+     toast.error('Email ou senha incorretos', error)
+     setEmail("")
+     setPassword("")
+    }
+
+
+
     setTouched(false);
-    setIsLoading(true);
     setLoginError(false);
-
-    let userData = null;
-
-    if (email === "admin@admin.com" && senha === "123456") {
-      userData = {
-        id: "1",
-        name: "Administrador",
-        email: "admin@admin.com",
-        role: "admin" as const,
-        avatar: "/avatars/admin.jpg",
-      };
-    } else if (email === "cliente@gmail.com" && senha === "123456") {
-      userData = {
-        id: "2",
-        name: "Cliente",
-        email: "cliente@exemplo.com",
-        role: "client" as const,
-        avatar: "/avatars/client.jpg",
-      };
-    }
-
-    if (userData) {
-      login(userData);
-      setFlipped(true);
-      setLoggedIn(true);
-
-      setTimeout(() => {
-        const redirectPath = userData.role === "admin" ? "/admin" : "/client";
-        router.push(redirectPath);
-      }, 1500);
-    } else {
-      setLoginError(true);
-      setIsLoading(false);
-      setEmail("");
-      setSenha("");
-
-      if (typeof window !== "undefined" && "vibrate" in navigator) {
-        navigator.vibrate(200);
-      }
-
-      setTimeout(() => setLoginError(false), 1000);
-    }
   }
 
   return (
@@ -129,10 +94,10 @@ export default function Page() {
                 <input
                   type={showPassword ? "text" : "password"}
                   placeholder="Senha"
-                  value={senha}
-                  onChange={(e) => setSenha(e.target.value)}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   className={`w-full p-2 pr-10 border rounded bg-white/20 text-white placeholder-white ${
-                    touched && !senha ? "border-red-400" : "border-white/60"
+                    touched && !password ? "border-red-400" : "border-white/60"
                   }`}
                 />
                 <button
@@ -143,7 +108,7 @@ export default function Page() {
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
-                {touched && !senha && (
+                {touched && !password && (
                   <span className="text-red-300 text-xs pl-1 -mt-1">
                     Campo obrigatório
                   </span>
@@ -155,7 +120,7 @@ export default function Page() {
                 type="submit"
                 className="w-2/6 max-w-xs mx-auto bg-[#223347] hover:bg-[#3c5674] text-white font-semibold rounded p-2 transition-transform duration-200 ease-in-out active:scale-90"
               >
-                {isLoading ? "Entrando..." : "Logar"}
+                Entrar
               </button>
 
               {/* Erro login */}

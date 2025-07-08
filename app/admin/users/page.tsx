@@ -24,7 +24,7 @@ import {
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-import {API} from "@/service/api"
+import {API} from "@/services/api"
 
 // Mock data
 const clients = [
