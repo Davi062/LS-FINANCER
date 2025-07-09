@@ -39,9 +39,10 @@ import {
   User,
   Building2,
   Briefcase,
+  Trash,
 } from "lucide-react";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { id, ptBR } from "date-fns/locale";
 
 import { API } from "@/services/api";
 import { toast } from "sonner";
@@ -53,54 +54,52 @@ interface ClientsType {
   phone_number: string;
 }
 
-interface Memberstype{
-  id:string
+interface Memberstype {
+  id: number;
   name: string;
   email: string;
   password: string;
   phone_number: string;
   super_admin_id: string;
-};
+}
 
 // Mock data
 
 // Client row component
-function ClientRow({ client }: { client: ClientsType }) {
+function ClientRow({ client, userDelete}: { client: ClientsType, userDelete: (id:number) => void }) {
   return (
-    <div className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
-      <div className="flex justify-between items-start">
+    <div className="flex border rounded-lg p-4 hover:bg-muted/50 transition-colors items-center justify-between">
+      <div className=" flex flex-col justify-between items-center ">
         <div>
           <h3 className="font-medium">{client.name}</h3>
           <p className="text-sm text-muted-foreground">{client.email}</p>
-        </div>
-      </div>
-      <div className="mt-2 grid grid-cols-2 gap-4 text-sm">
         <div>
-          <p className="text-muted-foreground">Telefone</p>
+          <p className="text-muted-foreground mt-2">Telefone</p>
           <p>{client.phone_number}</p>
         </div>
-        <div></div>
+        </div>
       </div>
+        <div/>
+        <div className="flex justify-end">
+          <Button variant={"destructive"} onClick={() => userDelete(client.id)} className="bg-blue-600"><Trash/>Excluir</Button>
+        </div>
     </div>
   );
 }
-// Team member row component
-function TeamMemberRow({ member }: { member: Memberstype}) {
+
+function TeamMemberRow({ member, onDelete }: { member: Memberstype, onDelete: (id: number) => void;}) {
   return (
     <div className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
-      <div className="flex justify-between items-start">
+      <div className="flex justify-between items-center">
         <div>
           <h3 className="font-medium">{member.name}</h3>
           <p className="text-sm text-muted-foreground">{member.email}</p>
         </div>
-        <div className="flex items-center gap-2">
-
+        <div className="flex items-center justify-end">
+        <Button variant={"destructive"} onClick={() => onDelete(member.id)} className="bg-blue-600"><Trash/>Excluir</Button>
         </div>
       </div>
-      <div className="mt-2 text-sm">
-        <p className="text-muted-foreground">
-          Último login:{" "}
-        </p>
+      <div className="mt-2 text-sm flex justify-between">
       </div>
     </div>
   );
@@ -200,23 +199,41 @@ export default function UsersPage() {
     e.preventDefault();
     try {
       const memberResponse = await API.post("/admins", teamMemberForm);
-      toast.success('Membro criado com sucesso', {
-        description: `Bem vindo a equipe: ${teamMemberForm.name}`
-      })
+      toast.success("Membro criado com sucesso", {
+        description: `Bem vindo a equipe: ${teamMemberForm.name}`,
+      });
       setTeamMemberForm({
         name: "",
         email: "",
-        password:"",
+        password: "",
         phone_number: "",
         super_admin_id: "",
-      })
+      });
     } catch (error: any) {
-      toast.error(error.response.data.message)
-      console.log(error.response.data.message)
+      toast.error(error.response.data.message);
+      console.log(error.response.data.message);
     }
   };
 
-  
+  const handleDeleteMembers = async (id: number) => {
+    try {
+      const responseDeleteMember = await API.delete(`/admins/${id}`);
+      toast.success("Deletado com sucesso", responseDeleteMember.data)
+      closeDialog()
+    } catch (error: any) {
+      toast.error(error.response.data.message)
+    }
+  };
+
+  const handleDeleteUsers = async (id: number) => {
+    try {
+      const responseDeleteUsers = await API.delete(`/users/${id}`);
+      toast.success("Deletado com sucesso", responseDeleteUsers.data)
+      closeDialog()
+    } catch (error: any) {
+      toast.error(error.response.data.message)
+    }
+  };
 
   // Filter clients based on search
   const filteredClients = clients.filter(
@@ -230,7 +247,7 @@ export default function UsersPage() {
   const filteredTeam = members.filter(
     (member) =>
       member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      member.email.toLowerCase().includes(searchTerm.toLowerCase()) 
+      member.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   useEffect(() => {
@@ -246,20 +263,19 @@ export default function UsersPage() {
     };
 
     searchClients();
-  }, []);
+  }, [handleClientSubmit]);
 
-
-  useEffect (() => {
+  useEffect(() => {
     const searchMembers = async () => {
       try {
         const SearchingMembers = await API.get("/admins");
-        setMembers(SearchingMembers.data)
+        setMembers(SearchingMembers.data);
       } catch (error: any) {
-        console.log("Erro ao cadastrar Membro", error.data)
+        console.log("Erro ao cadastrar Membro", error.data);
       }
-    }
-    searchMembers()
-  },[handleTeamMemberSubmit])
+    };
+    searchMembers();
+  }, [handleTeamMemberSubmit]);
 
   return (
     <div className="p-6 space-y-6 w-full">
@@ -323,7 +339,7 @@ export default function UsersPage() {
                   </div>
                 ) : (
                   filteredClients.map((client) => (
-                    <ClientRow key={client.id} client={client} />
+                    <ClientRow key={client.id} client={client} userDelete={handleDeleteUsers}/>
                   ))
                 )}
               </div>
@@ -347,7 +363,7 @@ export default function UsersPage() {
                   </div>
                 ) : (
                   filteredTeam.map((member) => (
-                    <TeamMemberRow key={member.id} member={member} />
+                    <TeamMemberRow key={member.id} member={member} onDelete={handleDeleteMembers}/>
                   ))
                 )}
               </div>
@@ -531,6 +547,29 @@ export default function UsersPage() {
                     />
                   </div>
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="member-password">Senha</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="member-password"
+                      type="password"
+                      placeholder="*******"
+                      className="pl-9"
+                      value={teamMemberForm.password}
+                      onChange={(e) =>
+                        setTeamMemberForm({
+                          ...teamMemberForm,
+                          password: e.target.value,
+                        })
+                      }
+                      required
+                    />
+                  </div>
+                </div>
+
+
                 <DialogFooter className="mt-6">
                   <Button type="button" variant="outline" onClick={closeDialog}>
                     Cancelar
