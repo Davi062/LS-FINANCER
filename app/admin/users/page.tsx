@@ -2,59 +2,70 @@
 
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  Search, 
-  Plus, 
-  Users, 
-  UserRoundCog, 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Search,
+  Plus,
+  Users,
+  UserRoundCog,
   IdCard,
   Phone,
   Mail,
   User,
   Building2,
-  Briefcase
+  Briefcase,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-import {API} from "@/services/api"
+import { API } from "@/services/api";
+import { toast } from "sonner";
 
 interface ClientsType {
-  id: number,
-  name: string,
-  email: string,
-  phone_number: string
+  id: number;
+  name: string;
+  email: string;
+  phone_number: string;
 }
+
+interface Memberstype{
+  id:string
+  name: string;
+  email: string;
+  password: string;
+  phone_number: string;
+  super_admin_id: string;
+};
+
 // Mock data
-const teamMembers = [
-  {
-    id: "1",
-    name: "Carlos Oliveira",
-    email: "carlos@empresa.com",
-    role: "Desenvolvedor",
-    status: "Ativo",
-    lastLogin: "2025-06-02T09:45:00Z"
-  },
-  {
-    id: "2",
-    name: "Ana Costa",
-    email: "ana@empresa.com",
-    role: "Designer",
-    status: "Ativo",
-    lastLogin: "2025-06-01T16:20:00Z"
-  },
-];
 
 // Client row component
-function ClientRow({ client }: { client: ClientsType} ) {
-
+function ClientRow({ client }: { client: ClientsType }) {
   return (
     <div className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
       <div className="flex justify-between items-start">
@@ -62,22 +73,19 @@ function ClientRow({ client }: { client: ClientsType} ) {
           <h3 className="font-medium">{client.name}</h3>
           <p className="text-sm text-muted-foreground">{client.email}</p>
         </div>
-        
       </div>
       <div className="mt-2 grid grid-cols-2 gap-4 text-sm">
         <div>
           <p className="text-muted-foreground">Telefone</p>
           <p>{client.phone_number}</p>
         </div>
-        <div>
-        </div>
-       
+        <div></div>
       </div>
     </div>
   );
 }
 // Team member row component
-function TeamMemberRow({ member }: { member: typeof teamMembers[0] }) {
+function TeamMemberRow({ member }: { member: Memberstype}) {
   return (
     <div className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
       <div className="flex justify-between items-start">
@@ -86,18 +94,12 @@ function TeamMemberRow({ member }: { member: typeof teamMembers[0] }) {
           <p className="text-sm text-muted-foreground">{member.email}</p>
         </div>
         <div className="flex items-center gap-2">
-          <Badge variant="outline">{member.role}</Badge>
-          <Badge
-            variant={member.status === "Ativo" ? "default" : "secondary"}
-            className={member.status === "Ativo" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}
-          >
-            {member.status}
-          </Badge>
+
         </div>
       </div>
       <div className="mt-2 text-sm">
         <p className="text-muted-foreground">
-          Último login: {format(new Date(member.lastLogin), "dd/MM/yyyy 'às' HH:mm")}
+          Último login:{" "}
         </p>
       </div>
     </div>
@@ -116,114 +118,148 @@ type ClientFormData = {
 type TeamMemberFormData = {
   name: string;
   email: string;
-  role: string;
+  password: string;
+  phone_number: string;
+  super_admin_id: string;
 };
 
 export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("clients");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [clients, setClients] = useState<ClientsType[]>([]);
+  const [members, setMembers] = useState<Memberstype[]>([]);
 
-  const [clients, setClients] = useState<ClientsType[]>([])
-  
   // Form states
   const [clientForm, setClientForm] = useState<ClientFormData>({
     name: "",
     email: "",
     document: "",
     phone_number: "",
-    company_name: ""
+    company_name: "",
   });
-  
+
   const [teamMemberForm, setTeamMemberForm] = useState<TeamMemberFormData>({
     name: "",
     email: "",
-    role: ""
+    password: "",
+    phone_number: "",
+    super_admin_id: "",
   });
-  
+
   // Dialog handlers
   const openAddDialog = () => {
     setIsDialogOpen(true);
   };
-  
+
   const closeDialog = () => {
     setIsDialogOpen(false);
   };
-  
+
   const handleClientSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    try { 
-      console.log('Enviando dados:', clientForm);
+    try {
+      console.log("Enviando dados:", clientForm);
 
       const response = await API.post("/users", clientForm, {
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
-      
-      console.log('Resposta do servidor:', response.data);
-      
+
+      console.log("Resposta do servidor:", response.data);
+
       // Reset form and close dialog on success
-      setClientForm({ name: "", email: "", document: "", phone_number: "", company_name: "" });
+      setClientForm({
+        name: "",
+        email: "",
+        document: "",
+        phone_number: "",
+        company_name: "",
+      });
       setIsDialogOpen(false);
-      
     } catch (error: any) {
-      console.error('Erro ao criar usuário:', error);
+      console.error("Erro ao criar usuário:", error);
       if (error.response) {
         // A requisição foi feita e o servidor respondeu com um status fora do 2xx
-        console.error('Resposta do servidor:', error.response.data);
-        console.error('Status:', error.response.status);
-        console.error('Headers:', error.response.headers);
+        console.error("Resposta do servidor:", error.response.data);
+        console.error("Status:", error.response.status);
+        console.error("Headers:", error.response.headers);
       } else if (error.request) {
         // A requisição foi feita mas não houve resposta
-        console.error('Sem resposta do servidor:', error.request);
+        console.error("Sem resposta do servidor:", error.request);
       } else {
         // Algum erro ocorreu ao montar a requisição
-        console.error('Erro ao configurar a requisição:', error.message);
+        console.error("Erro ao configurar a requisição:", error.message);
       }
     }
   };
-  
-  const handleTeamMemberSubmit = (e: React.FormEvent) => {
+
+  const handleTeamMemberSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically send the data to your API
-    console.log("New team member:", teamMemberForm);
-    // Reset form and close dialog
-    setTeamMemberForm({ name: "", email: "", role: "" });
-    setIsDialogOpen(false);
+    try {
+      const memberResponse = await API.post("/admins", teamMemberForm);
+      toast.success('Membro criado com sucesso', {
+        description: `Bem vindo a equipe: ${teamMemberForm.name}`
+      })
+      setTeamMemberForm({
+        name: "",
+        email: "",
+        password:"",
+        phone_number: "",
+        super_admin_id: "",
+      })
+    } catch (error: any) {
+      toast.error(error.response.data.message)
+      console.log(error.response.data.message)
+    }
   };
 
+  
+
   // Filter clients based on search
-  const filteredClients = clients.filter(client => 
-    client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.phone_number.includes(searchTerm)
+  const filteredClients = clients.filter(
+    (client) =>
+      client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      client.phone_number.includes(searchTerm)
   );
 
   // Filter team members based on search
-  const filteredTeam = teamMembers.filter(member => 
-    member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    member.role.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredTeam = members.filter(
+    (member) =>
+      member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.email.toLowerCase().includes(searchTerm.toLowerCase()) 
   );
 
   useEffect(() => {
     const searchClients = async () => {
       try {
-
-        const resp = await API.get<ClientsType[]>("/users")
+        const resp = await API.get<ClientsType[]>("/users");
         console.log(resp.data);
 
-        setClients(resp.data)
-
+        setClients(resp.data);
       } catch (error) {
-        console.error("Erro ao buscar usuários:", error)
+        console.error("Erro ao buscar usuários:", error);
+      }
+    };
+
+    searchClients();
+  }, []);
+
+
+  useEffect (() => {
+    const searchMembers = async () => {
+      try {
+        const SearchingMembers = await API.get("/admins");
+        setMembers(SearchingMembers.data)
+      } catch (error: any) {
+        console.log("Erro ao cadastrar Membro", error.data)
       }
     }
-
-    searchClients()
-  }, [])
+    searchMembers()
+  },[handleTeamMemberSubmit])
 
   return (
     <div className="p-6 space-y-6 w-full">
@@ -240,8 +276,8 @@ export default function UsersPage() {
         </Button>
       </div>
 
-      <Tabs 
-        defaultValue="clients" 
+      <Tabs
+        defaultValue="clients"
         className="w-full"
         onValueChange={setActiveTab}
       >
@@ -256,12 +292,14 @@ export default function UsersPage() {
               Equipe
             </TabsTrigger>
           </TabsList>
-          
+
           <div className="relative w-64">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
-              placeholder={`Buscar ${activeTab === 'clients' ? 'clientes...' : 'membros...'}`}
+              placeholder={`Buscar ${
+                activeTab === "clients" ? "clientes..." : "membros..."
+              }`}
               className="pl-8"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -317,7 +355,7 @@ export default function UsersPage() {
           </Card>
         </TabsContent>
       </Tabs>
-      
+
       {/* Add Client/Team Member Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
@@ -342,12 +380,14 @@ export default function UsersPage() {
                       placeholder="Nome do cliente"
                       className="pl-9"
                       value={clientForm.name}
-                      onChange={(e) => setClientForm({...clientForm, name: e.target.value})}
+                      onChange={(e) =>
+                        setClientForm({ ...clientForm, name: e.target.value })
+                      }
                       required
                     />
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="email">E-mail</Label>
                   <div className="relative">
@@ -358,7 +398,9 @@ export default function UsersPage() {
                       placeholder="email@exemplo.com"
                       className="pl-9"
                       value={clientForm.email}
-                      onChange={(e) => setClientForm({...clientForm, email: e.target.value})}
+                      onChange={(e) =>
+                        setClientForm({ ...clientForm, email: e.target.value })
+                      }
                       required
                     />
                   </div>
@@ -375,12 +417,17 @@ export default function UsersPage() {
                       placeholder="000.000.000-00"
                       className="pl-9"
                       value={clientForm.document}
-                      onChange={(e) => setClientForm({...clientForm, document: e.target.value})}
+                      onChange={(e) =>
+                        setClientForm({
+                          ...clientForm,
+                          document: e.target.value,
+                        })
+                      }
                       required
                     />
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="phone">Telefone</Label>
                   <div className="relative">
@@ -391,12 +438,17 @@ export default function UsersPage() {
                       placeholder="(00) 00000-0000"
                       className="pl-9"
                       value={clientForm.phone_number}
-                      onChange={(e) => setClientForm({...clientForm, phone_number: e.target.value})}
+                      onChange={(e) =>
+                        setClientForm({
+                          ...clientForm,
+                          phone_number: e.target.value,
+                        })
+                      }
                       required
                     />
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="company">Empresa (Opcional)</Label>
                   <div className="relative">
@@ -406,11 +458,16 @@ export default function UsersPage() {
                       placeholder="Nome da empresa"
                       className="pl-9"
                       value={clientForm.company_name || ""}
-                      onChange={(e) => setClientForm({...clientForm, company_name: e.target.value})}
+                      onChange={(e) =>
+                        setClientForm({
+                          ...clientForm,
+                          company_name: e.target.value,
+                        })
+                      }
                     />
                   </div>
                 </div>
-                
+
                 <DialogFooter className="mt-6">
                   <Button type="button" variant="outline" onClick={closeDialog}>
                     Cancelar
@@ -443,12 +500,17 @@ export default function UsersPage() {
                       placeholder="Nome do membro"
                       className="pl-9"
                       value={teamMemberForm.name}
-                      onChange={(e) => setTeamMemberForm({...teamMemberForm, name: e.target.value})}
+                      onChange={(e) =>
+                        setTeamMemberForm({
+                          ...teamMemberForm,
+                          name: e.target.value,
+                        })
+                      }
                       required
                     />
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="member-email">E-mail</Label>
                   <div className="relative">
@@ -459,31 +521,16 @@ export default function UsersPage() {
                       placeholder="email@empresa.com"
                       className="pl-9"
                       value={teamMemberForm.email}
-                      onChange={(e) => setTeamMemberForm({...teamMemberForm, email: e.target.value})}
+                      onChange={(e) =>
+                        setTeamMemberForm({
+                          ...teamMemberForm,
+                          email: e.target.value,
+                        })
+                      }
                       required
                     />
                   </div>
                 </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="role">Cargo</Label>
-                  <Select
-                    value={teamMemberForm.role}
-                    onValueChange={(value) => setTeamMemberForm({...teamMemberForm, role: value})}
-                  >
-                    <SelectTrigger className="w-full">
-                      <Briefcase className="h-4 w-4 text-muted-foreground mr-2" />
-                      <SelectValue placeholder="Selecione o cargo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Desenvolvedor">Desenvolvedor</SelectItem>
-                      <SelectItem value="Designer">Designer</SelectItem>
-                      <SelectItem value="Gerente">Gerente</SelectItem>
-                      <SelectItem value="Analista">Analista</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
                 <DialogFooter className="mt-6">
                   <Button type="button" variant="outline" onClick={closeDialog}>
                     Cancelar
