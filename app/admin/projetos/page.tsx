@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useEffect, useState } from "react";
 import { ChevronsDown, Plus, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,8 +35,51 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import API from "@/services/api";
+
+interface projectsType {
+  id: number
+  admin_id: number | null
+  user_id: number
+  title: string
+  description: string
+  status: string
+  start_date: string
+  price: string
+  updated_at: string
+  user_name: string
+  user_email: string
+  user_phone_number: string
+}
 
 export default function Projects() {
+
+ const [projects, setProjects] = useState<projectsType[]>([])
+
+ useEffect( () =>  {
+
+
+
+   const fetchProjects = async () =>{
+   try {
+
+    const response= await API.get<projectsType[]>("/projects")
+    setProjects(response.data)
+
+    
+   } catch (error:any) {
+    console.error(error.response)
+   }
+
+  }
+
+  fetchProjects()
+
+    console.log(projects)
+ },[]) 
+
+ console.log(projects)
+
 
   return (
     <div>
@@ -86,78 +130,83 @@ export default function Projects() {
       </div>
 
       <div> {/*Conteúdo André */}
-        <Card className="m-5">
-          <CardHeader>
-            <div className="flex justify-between">
-              <div>
-                <CardTitle>Título do Projeto</CardTitle>
-                <p className="pt-[5px]">Nome do cliente</p>
-              </div>
-              <Badge variant={"secondary"}>Ativo</Badge>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-[30px] mb-4">
-              <div>
-                Data para entrega
-                <p>20/07/2025</p>
-              </div>
-              <div>
-                <p>Valor</p>
-                <p>50,00</p>
-              </div>
-            </div>
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button>
-                  <ChevronsDown /> Ver mais
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-
-                <DialogHeader>
-                  <div>
-                    <DialogTitle>Título do projeto</DialogTitle>
-                  </div>
-                  <div>
-                    <p>João da Silva</p>
-                    <p>joao.silva@example.com</p>
-                    <p>+55 62 98429-0296</p>
-                  </div>
-                  <DialogDescription>
-                    <p>Descrições do projeto serão definidas aqui.</p>
-                  </DialogDescription>
-
-                  <Badge variant={"secondary"}>Ativo</Badge>
-
-                </DialogHeader>
-
-                <div> {/*datas*/}
-                  <div>
-                    <p>Data de início</p>
-                    <p>22/07/2025</p>
-                  </div>
-
-                  <div>
-                    <p>Data para entrega</p>
-                    <p>15/08/2025</p>
-                  </div>
-                </div>
-
+        {projects.map((project) => (
+          <Card className="m-5" key={project.id}>
+            <CardHeader>
+              <div className="flex justify-between">
                 <div>
-                  <p>$5.000</p>
+                  <CardTitle>{project.title}</CardTitle>
+                  <p className="pt-[5px]">{project.user_name}</p>
                 </div>
-                <DialogFooter className="flex justify-between">
+                <Badge variant="secondary">{project.status}</Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-[30px] mb-4">
+                <div>
+                  <p>Data para entrega</p>
+                  <p>{new Date(project.updated_at).toLocaleDateString('pt-BR')}</p>
+                </div>
+                <div>
+                  <p>Valor</p>
+                  <p>R$ {parseFloat(project.price).toFixed(2).replace('.', ',')}</p>
+                </div>
+              </div>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button>
+                    <ChevronsDown /> Ver mais
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="w-full md:w-[90%]">
+                  <DialogHeader className="flex flex-col md:flex-row justify-between p-4 gap-4">
+                    {/* Caixa da esquerda */}
+                    <div className="w-full md:w-[48%] p-4 border rounded">
+                      <p className="font-semibold mb-2">Dados do cliente</p>
+                      <p>{project.user_name}</p>
+                      <p>{project.user_email}</p>
+                      <p>{project.user_phone_number}</p>
+                    </div>
 
-                  <Button type="submit"><Save /> Save change</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                    {/* Caixa da direita */}
+                    <div className="w-full md:w-[48%] p-4 border rounded">
+                      <Badge variant="secondary" className="mb-2">{project.status}</Badge>
+                      <DialogTitle>{project.title}</DialogTitle>
+                      <DialogDescription className="mt-2">
+                        <p>{project.description}</p>
+                      </DialogDescription>
 
-          </CardContent>
-        </Card>
+                      <div className="mt-4 space-y-2">
+                        <div>
+                          <p className="text-sm text-muted-foreground">Data de início</p>
+                          <p>{new Date(project.start_date).toLocaleDateString('pt-BR')}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Última atualização</p>
+                          <p>{new Date(project.updated_at).toLocaleDateString('pt-BR')}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </DialogHeader>
+
+                  <div className="p-4 border-t">
+                    <p className="text-2xl font-bold">R$ {parseFloat(project.price).toFixed(2).replace('.', ',')}</p>
+                  </div>
+                  
+                  <DialogFooter className="flex justify-between items-center border-t pt-4">
+                    <p className="text-sm text-muted-foreground">
+                      Criado em: {new Date(project.updated_at).toLocaleDateString('pt-BR')}
+                    </p>
+                    <Button type="submit">
+                      <Save className="mr-2 h-4 w-4" /> Salvar
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </CardContent>
+          </Card>
+        ))}
       </div>
-
 
     </div>
   );
